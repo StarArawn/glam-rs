@@ -2,6 +2,12 @@
 
 use crate::{f64::math, BVec3, BVec3A, DVec2, DVec4, IVec3, UVec3, Vec3};
 
+use rune::Any;
+
+use rune::ToConstValue;
+
+use rune::ToValue;
+
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -14,12 +20,18 @@ pub const fn dvec3(x: f64, y: f64, z: f64) -> DVec3 {
 }
 
 /// A 3-dimensional vector.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Any, ToConstValue, Clone, Copy, PartialEq)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct DVec3 {
+    #[rune(get, set, copy, meta)]
+    #[const_value(with = crate::f64_const_value)]
     pub x: f64,
+    #[rune(get, set, copy, meta)]
+    #[const_value(with = crate::f64_const_value)]
     pub y: f64,
+    #[rune(get, set, copy, meta)]
+    #[const_value(with = crate::f64_const_value)]
     pub z: f64,
 }
 
@@ -72,6 +84,8 @@ impl DVec3 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+    #[rune::function(keep, path = Self::new)]
+
     pub const fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
@@ -79,6 +93,8 @@ impl DVec3 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::splat)]
+
     pub const fn splat(v: f64) -> Self {
         Self { x: v, y: v, z: v }
     }
@@ -141,7 +157,7 @@ impl DVec3 {
     /// Panics if `slice` is less than 3 elements long.
     #[inline]
     pub fn write_to_slice(self, slice: &mut [f64]) {
-        slice.copy_from_slice(&self.to_array());
+        slice[..3].copy_from_slice(&self.to_array());
     }
 
     /// Internal method for creating a 3D vector from a 4D vector, discarding `w`.
@@ -159,6 +175,7 @@ impl DVec3 {
     /// Creates a 4D vector from `self` and the given `w` value.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn extend(self, w: f64) -> DVec4 {
         DVec4::new(self.x, self.y, self.z, w)
     }
@@ -168,6 +185,7 @@ impl DVec3 {
     /// Truncation may also be performed by using [`self.xy()`][crate::swizzles::Vec3Swizzles::xy()].
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn truncate(self) -> DVec2 {
         use crate::swizzles::Vec3Swizzles;
         self.xy()
@@ -200,6 +218,7 @@ impl DVec3 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn dot(self, rhs: Self) -> f64 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
@@ -214,6 +233,7 @@ impl DVec3 {
     /// Computes the cross product of `self` and `rhs`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn cross(self, rhs: Self) -> Self {
         Self {
             x: self.y * rhs.z - rhs.y * self.z,
@@ -227,6 +247,7 @@ impl DVec3 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -240,6 +261,7 @@ impl DVec3 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -257,6 +279,7 @@ impl DVec3 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -367,6 +390,7 @@ impl DVec3 {
     /// Returns a vector containing the absolute value of each element of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn abs(self) -> Self {
         Self {
             x: math::abs(self.x),
@@ -382,6 +406,7 @@ impl DVec3 {
     /// - `NAN` if the number is `NAN`
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn signum(self) -> Self {
         Self {
             x: math::signum(self.x),
@@ -431,6 +456,7 @@ impl DVec3 {
     /// Returns `true` if any elements are `NaN`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn is_nan(self) -> bool {
         self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
     }
@@ -448,6 +474,7 @@ impl DVec3 {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length(self) -> f64 {
         math::sqrt(self.dot(self))
     }
@@ -458,6 +485,7 @@ impl DVec3 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length_squared(self) -> f64 {
         self.dot(self)
     }
@@ -474,6 +502,7 @@ impl DVec3 {
     /// Computes the Euclidean distance between two points in space.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn distance(self, rhs: Self) -> f64 {
         (self - rhs).length()
     }
@@ -481,6 +510,7 @@ impl DVec3 {
     /// Compute the squared euclidean distance between two points in space.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn distance_squared(self, rhs: Self) -> f64 {
         (self - rhs).length_squared()
     }
@@ -520,6 +550,7 @@ impl DVec3 {
     /// Will panic if the resulting normalized vector is not finite when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn normalize(self) -> Self {
         #[allow(clippy::let_and_return)]
         let normalized = self.mul(self.length_recip());
@@ -662,6 +693,7 @@ impl DVec3 {
     /// element of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn floor(self) -> Self {
         Self {
             x: math::floor(self.x),
@@ -674,6 +706,7 @@ impl DVec3 {
     /// each element of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn ceil(self) -> Self {
         Self {
             x: math::ceil(self.x),
@@ -702,6 +735,7 @@ impl DVec3 {
     /// Note that this is fast but not precise for large numbers.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn fract(self) -> Self {
         self - self.trunc()
     }
@@ -756,6 +790,7 @@ impl DVec3 {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn lerp(self, rhs: Self, s: f64) -> Self {
         self * (1.0 - s) + rhs * s
     }
@@ -1948,4 +1983,152 @@ impl From<BVec3A> for DVec3 {
             f64::from(bool_array[2]),
         )
     }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<DVec3>()?;
+    module.function_meta(DVec3::new__meta)?;
+    module.function_meta(DVec3::splat__meta)?;
+
+    module.function_meta(DVec3::extend__meta)?;
+
+    module.function_meta(DVec3::truncate__meta)?;
+
+    module.function_meta(DVec3::dot__meta)?;
+
+    module
+        .constant("ZERO", DVec3::ZERO)
+        .build_associated::<DVec3>()?;
+
+    module.constant("X", DVec3::X).build_associated::<DVec3>()?;
+    module.constant("Y", DVec3::Y).build_associated::<DVec3>()?;
+    module.constant("Z", DVec3::Z).build_associated::<DVec3>()?;
+    module
+        .constant("NEG_X", DVec3::NEG_X)
+        .build_associated::<DVec3>()?;
+    module
+        .constant("NEG_Y", DVec3::NEG_Y)
+        .build_associated::<DVec3>()?;
+    module
+        .constant("NEG_Z", DVec3::NEG_Z)
+        .build_associated::<DVec3>()?;
+    module.function_meta(DVec3::cross__meta)?;
+
+    module.function_meta(DVec3::min__meta)?;
+    module.function_meta(DVec3::max__meta)?;
+    module.function_meta(DVec3::clamp__meta)?;
+    module.function_meta(DVec3::abs__meta)?;
+    module.function_meta(DVec3::length__meta)?;
+    module.function_meta(DVec3::length_squared__meta)?;
+    module.function_meta(DVec3::distance__meta)?;
+    module.function_meta(DVec3::floor__meta)?;
+    module.function_meta(DVec3::ceil__meta)?;
+    module.function_meta(DVec3::fract__meta)?;
+    module.function_meta(DVec3::lerp__meta)?;
+
+    module.function_meta(rune_add)?;
+    module.function_meta(rune_sub)?;
+    module.function_meta(rune_div)?;
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_add_assign)?;
+    module.function_meta(rune_sub_assign)?;
+    module.function_meta(rune_div_assign)?;
+    module.function_meta(rune_mul_assign)?;
+
+    module.function_meta(clone_vec)?;
+    module.implement_trait::<DVec3>(rune::item!(::std::clone::Clone))?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = CLONE)]
+fn clone_vec(this: &DVec3) -> rune::runtime::VmResult<DVec3> {
+    rune::runtime::VmResult::Ok(this.clone())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &DVec3, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+impl rune::runtime::FromConstValue for DVec3 {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<DVec3>()
+    }
+}
+
+impl rune::alloc::prelude::TryClone for DVec3 {
+    fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
+        Ok(*self)
+    }
+}
+
+#[rune::function(instance, protocol = ADD)]
+fn rune_add(a: DVec3, b: rune::Value) -> DVec3 {
+    if let Ok(f) = b.as_float() {
+        a + f
+    } else if let Ok(vec) = b.downcast::<DVec3>() {
+        a + vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = SUB)]
+fn rune_sub(a: DVec3, b: rune::Value) -> DVec3 {
+    if let Ok(f) = b.as_float() {
+        a - f
+    } else if let Ok(vec) = b.downcast::<DVec3>() {
+        a - vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: DVec3, b: rune::Value) -> DVec3 {
+    if let Ok(f) = b.as_float() {
+        a * f
+    } else if let Ok(vec) = b.downcast::<DVec3>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = DIV)]
+fn rune_div(a: DVec3, b: rune::Value) -> DVec3 {
+    if let Ok(f) = b.as_float() {
+        a / f
+    } else if let Ok(vec) = b.downcast::<DVec3>() {
+        a / vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = ADD_ASSIGN)]
+fn rune_add_assign(a: &mut DVec3, b: rune::Value) {
+    *a = __rune_fn__rune_add(*a, b);
+}
+
+#[rune::function(instance, protocol = SUB_ASSIGN)]
+fn rune_sub_assign(a: &mut DVec3, b: rune::Value) {
+    *a = __rune_fn__rune_sub(*a, b);
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut DVec3, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+#[rune::function(instance, protocol = DIV_ASSIGN)]
+fn rune_div_assign(a: &mut DVec3, b: rune::Value) {
+    *a = __rune_fn__rune_div(*a, b);
 }

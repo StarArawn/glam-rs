@@ -215,6 +215,13 @@
     {% endif %}
 };
 
+use rune::Any;
+{% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
+use rune::ToConstValue;
+{% endif %}
+{% if is_float %}
+use rune::ToValue;
+{% endif %}
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -272,6 +279,10 @@ pub const fn {{ self_t | lower }}(
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
 {%- endif %}
 #[derive(
+    Any,
+    {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
+    ToConstValue,
+    {% endif %}
     Clone,
     Copy,
     {% if is_scalar %}
@@ -299,6 +310,13 @@ pub const fn {{ self_t | lower }}(
 pub struct {{ self_t }}
 {
     {% for c in components %}
+        #[rune(get, set, copy, meta)]
+        {% if scalar_t == "f32" %}
+        #[const_value(with = crate::f32_const_value)]
+        {% endif %}
+        {% if scalar_t == "f64" %}
+        #[const_value(with = crate::f64_const_value)]
+        {% endif %}
         pub {{ c }}: {{ scalar_t }},
     {%- endfor %}
 }
@@ -368,6 +386,9 @@ impl {{ self_t }} {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep, path = Self::new)]
+    {% endif %}
     pub const fn new(
         {% for c in components %}
             {{ c }}: {{ scalar_t }},
@@ -418,6 +439,9 @@ impl {{ self_t }} {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep, path = Self::splat)]
+    {% endif %}
     pub const fn splat(v: {{ scalar_t }}) -> Self {
         {% if is_scalar %}
             Self {
@@ -529,7 +553,7 @@ impl {{ self_t }} {
             assert!(slice.len() >= 4);
             unsafe { vst1q_f32(slice.as_mut_ptr(), self.0); }
         {% else %}
-            slice.copy_from_slice(&self.to_array());
+            slice[..{{ dim }}].copy_from_slice(&self.to_array());
         {% endif %}
     }
 
@@ -537,6 +561,9 @@ impl {{ self_t }} {
     /// Creates a 3D vector from `self` and the given `z` value.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub const fn extend(self, z: {{ scalar_t }}) -> {{ vec3_t }} {
         {{ vec3_t }}::new(self.x, self.y, z)
     }
@@ -571,6 +598,9 @@ impl {{ self_t }} {
     /// Creates a 4D vector from `self` and the given `w` value.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn extend(self, w: {{ scalar_t }}) -> {{ vec4_t }} {
         {{ vec4_t }}::new(self.x, self.y, self.z, w)
     }
@@ -580,6 +610,9 @@ impl {{ self_t }} {
     /// Truncation may also be performed by using [`self.xy()`][crate::swizzles::Vec3Swizzles::xy()].
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn truncate(self) -> {{ vec2_t }} {
         use crate::swizzles::Vec3Swizzles;
         self.xy()
@@ -594,6 +627,9 @@ impl {{ self_t }} {
 {%- endif %}
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn truncate(self) -> {{ vec3_t }} {
         use crate::swizzles::Vec4Swizzles;
         self.xyz()
@@ -614,6 +650,9 @@ impl {{ self_t }} {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn dot(self, rhs: Self) -> {{ scalar_t }} {
         {% if is_scalar %}
             {% for c in components %}
@@ -658,6 +697,9 @@ impl {{ self_t }} {
     /// Computes the cross product of `self` and `rhs`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn cross(self, rhs: Self) -> Self {
         {% if is_scalar %}
             Self {
@@ -728,6 +770,9 @@ impl {{ self_t }} {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn min(self, rhs: Self) -> Self {
         {% if is_scalar %}
             Self {
@@ -753,6 +798,9 @@ impl {{ self_t }} {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn max(self, rhs: Self) -> Self {
         {% if is_scalar %}
             Self {
@@ -782,6 +830,9 @@ impl {{ self_t }} {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -1194,6 +1245,9 @@ impl {{ self_t }} {
     /// Returns a vector containing the absolute value of each element of `self`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn abs(self) -> Self {
         {% if is_scalar %}
             Self {
@@ -1231,6 +1285,9 @@ impl {{ self_t }} {
     {%- endif %}
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn signum(self) -> Self {
         {% if is_scalar %}
             Self {
@@ -1403,6 +1460,9 @@ impl {{ self_t }} {
     /// Returns `true` if any elements are `NaN`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn is_nan(self) -> bool {
         {% if is_scalar %}
             {% for c in components %}
@@ -1440,6 +1500,9 @@ impl {{ self_t }} {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
+    {% if is_float %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn length(self) -> {{ scalar_t }} {
         {% if is_scalar or is_neon %}
             math::sqrt(self.dot(self))
@@ -1466,6 +1529,9 @@ impl {{ self_t }} {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn length_squared(self) -> {{ scalar_t }} {
         self.dot(self)
     }
@@ -1496,6 +1562,9 @@ impl {{ self_t }} {
     /// Computes the Euclidean distance between two points in space.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn distance(self, rhs: Self) -> {{ scalar_t }} {
         (self - rhs).length()
     }
@@ -1505,6 +1574,9 @@ impl {{ self_t }} {
     /// Compute the squared euclidean distance between two points in space.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn distance_squared(self, rhs: Self) -> {{ scalar_t }} {
         (self - rhs).length_squared()
     }
@@ -1564,6 +1636,9 @@ impl {{ self_t }} {
     /// Will panic if the resulting normalized vector is not finite when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn normalize(self) -> Self {
         {% if is_scalar or is_neon %}
             #[allow(clippy::let_and_return)]
@@ -1742,6 +1817,9 @@ impl {{ self_t }} {
     /// element of `self`.
     #[inline]
     #[must_use]
+    {% if is_float %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn floor(self) -> Self {
         {% if is_scalar %}
             Self {
@@ -1766,6 +1844,9 @@ impl {{ self_t }} {
     /// each element of `self`.
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn ceil(self) -> Self {
         {% if is_scalar %}
             Self {
@@ -1818,6 +1899,9 @@ impl {{ self_t }} {
     /// Note that this is fast but not precise for large numbers.
     #[inline]
     #[must_use]
+    {% if is_float %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn fract(self) -> Self {
         self - self.trunc()
     }
@@ -1888,6 +1972,9 @@ impl {{ self_t }} {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
+    {% if scalar_t == "f32" or scalar_t == "f64" %}
+    #[rune::function(keep)]
+    {%- endif %}
     pub fn lerp(self, rhs: Self, s: {{ scalar_t }}) -> Self {
         self * (1.0 - s) + rhs * s
     }
@@ -4249,4 +4336,166 @@ impl From<{{ bvec_from_type }}> for {{ self_t }} {
             )
         }
     }
+{% endif %}
+
+
+{% if is_float %}
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<{{ self_t }}>()?;
+    module.function_meta({{ self_t }}::new__meta)?;
+    module.function_meta({{ self_t }}::splat__meta)?;
+    {% if dim == 3 or dim == 2 %}
+    module.function_meta({{ self_t }}::extend__meta)?;
+    {% endif %}
+    {% if dim == 3 or dim == 4 %}
+    module.function_meta({{ self_t }}::truncate__meta)?;
+    {% endif %}
+    module.function_meta({{ self_t }}::dot__meta)?;
+    {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
+    module.constant("ZERO", {{ self_t }}::ZERO).build_associated::<{{ self_t }}>()?;
+    {% if dim == 3 %}
+    module.constant("X", {{ self_t }}::X).build_associated::<{{ self_t }}>()?;
+    module.constant("Y", {{ self_t }}::Y).build_associated::<{{ self_t }}>()?;
+    module.constant("Z", {{ self_t }}::Z).build_associated::<{{ self_t }}>()?;
+    module.constant("NEG_X", {{ self_t }}::NEG_X).build_associated::<{{ self_t }}>()?;
+    module.constant("NEG_Y", {{ self_t }}::NEG_Y).build_associated::<{{ self_t }}>()?;
+    module.constant("NEG_Z", {{ self_t }}::NEG_Z).build_associated::<{{ self_t }}>()?;
+    module.function_meta({{ self_t }}::cross__meta)?;
+    {% endif %}
+    {% endif %}
+    module.function_meta({{ self_t }}::min__meta)?;
+    module.function_meta({{ self_t }}::max__meta)?;
+    module.function_meta({{ self_t }}::clamp__meta)?;
+    module.function_meta({{ self_t }}::abs__meta)?;
+    module.function_meta({{ self_t }}::length__meta)?;
+    module.function_meta({{ self_t }}::length_squared__meta)?;
+    module.function_meta({{ self_t }}::distance__meta)?;
+    module.function_meta({{ self_t }}::floor__meta)?;
+    module.function_meta({{ self_t }}::ceil__meta)?;
+    module.function_meta({{ self_t }}::fract__meta)?;
+    module.function_meta({{ self_t }}::lerp__meta)?;
+
+    module.function_meta(rune_add)?;
+    module.function_meta(rune_sub)?;
+    module.function_meta(rune_div)?;
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_add_assign)?;
+    module.function_meta(rune_sub_assign)?;
+    module.function_meta(rune_div_assign)?;
+    module.function_meta(rune_mul_assign)?;
+
+    module.function_meta(clone_vec)?;
+    module.implement_trait::<{{ self_t }}>(rune::item!(::std::clone::Clone))?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = CLONE)]
+fn clone_vec(this: &{{ self_t }}) -> rune::runtime::VmResult<{{ self_t }}> {
+    rune::runtime::VmResult::Ok(this.clone())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &{{ self_t }}, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+impl rune::runtime::FromConstValue for {{ self_t }} {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<{{ self_t }}>()
+    }
+}
+
+impl rune::alloc::prelude::TryClone for {{ self_t }} {
+    fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
+        Ok(*self)
+    }
+}
+
+#[rune::function(instance, protocol = ADD)]
+fn rune_add(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+    if let Ok(f) = b.as_float() {
+        {% if scalar_t == "f32" %}
+        a + f as f32
+        {% else %}
+        a + f
+        {% endif %}
+    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+        a + vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = SUB)]
+fn rune_sub(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+    if let Ok(f) = b.as_float() {
+        {% if scalar_t == "f32" %}
+        a - f as f32
+        {% else %}
+        a - f
+        {% endif %}
+    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+        a - vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+    if let Ok(f) = b.as_float() {
+        {% if scalar_t == "f32" %}
+        a * f as f32
+        {% else %}
+        a * f
+        {% endif %}
+    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = DIV)]
+fn rune_div(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+    if let Ok(f) = b.as_float() {
+        {% if scalar_t == "f32" %}
+        a / f as f32
+        {% else %}
+        a / f
+        {% endif %}
+    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+        a / vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = ADD_ASSIGN)]
+fn rune_add_assign(a: &mut {{ self_t }}, b: rune::Value) {
+    *a = __rune_fn__rune_add(*a, b);
+}
+
+#[rune::function(instance, protocol = SUB_ASSIGN)]
+fn rune_sub_assign(a: &mut {{ self_t }}, b: rune::Value) {
+    *a = __rune_fn__rune_sub(*a, b);
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut {{ self_t }}, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+#[rune::function(instance, protocol = DIV_ASSIGN)]
+fn rune_div_assign(a: &mut {{ self_t }}, b: rune::Value) {
+    *a = __rune_fn__rune_div(*a, b);
+}
+
 {% endif %}

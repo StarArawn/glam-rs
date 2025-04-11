@@ -10,6 +10,7 @@ use crate::{
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use rune::Any;
 
 use core::arch::wasm32::*;
 
@@ -49,7 +50,7 @@ pub const fn mat4(x_axis: Vec4, y_axis: Vec4, z_axis: Vec4, w_axis: Vec4) -> Mat
 ///
 /// The resulting perspective project can be use to transform 3D vectors as points with
 /// perspective correction using the [`Self::project_point3()`] convenience method.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Any)]
 #[repr(C)]
 pub struct Mat4 {
     pub x_axis: Vec4,
@@ -591,6 +592,7 @@ impl Mat4 {
     /// Returns the transpose of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transpose(&self) -> Self {
         // Based on https://github.com/microsoft/DirectXMath `XMMatrixTranspose`
         let tmp0 = i32x4_shuffle::<0, 1, 4, 5>(self.x_axis.0, self.y_axis.0);
@@ -652,6 +654,7 @@ impl Mat4 {
     ///
     /// Will panic if the determinant of `self` is zero when `glam_assert` is enabled.
     #[must_use]
+    #[rune::function(keep)]
     pub fn inverse(&self) -> Self {
         // Based on https://github.com/g-truc/glm `glm_mat4_inverse`
         let fac0 = {
@@ -1139,6 +1142,7 @@ impl Mat4 {
     /// Will panic if the 3rd row of `self` is not `(0, 0, 0, 1)` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transform_point3(&self, rhs: Vec3) -> Vec3 {
         glam_assert!(self.row(3).abs_diff_eq(Vec4::W, 1e-6));
         let mut res = self.x_axis.mul(rhs.x);
@@ -1160,6 +1164,7 @@ impl Mat4 {
     /// Will panic if the 3rd row of `self` is not `(0, 0, 0, 1)` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transform_vector3(&self, rhs: Vec3) -> Vec3 {
         glam_assert!(self.row(3).abs_diff_eq(Vec4::W, 1e-6));
         let mut res = self.x_axis.mul(rhs.x);
@@ -1322,6 +1327,11 @@ impl Mat4 {
             self.z_axis.as_dvec4(),
             self.w_axis.as_dvec4(),
         )
+    }
+
+    #[rune::function(path = Mat4::identity)]
+    fn identity() -> Mat4 {
+        Mat4::IDENTITY
     }
 }
 
@@ -1532,5 +1542,142 @@ impl fmt::Display for Mat4 {
                 self.x_axis, self.y_axis, self.z_axis, self.w_axis
             )
         }
+    }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<Mat4>()?;
+
+    module.function_meta(Mat4::transform_point3__meta)?;
+    module.function_meta(Mat4::transform_vector3__meta)?;
+
+    module.function_meta(Mat4::transpose__meta)?;
+    module.function_meta(Mat4::inverse__meta)?;
+
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_mul_assign)?;
+
+    module.function_meta(Mat4::identity)?;
+
+    // TODO: Doesn't work. Fix somehow?
+    // module
+    //    .constant("IDENTITY", Mat4::IDENTITY)
+    //    .build_associated::<Mat4>()?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &Mat4, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+use rune::ToValue;
+
+use rune::alloc::clone::TryClone;
+use rune::FromValue;
+impl rune::runtime::ToConstValue for Mat4 {
+    #[inline]
+    fn to_const_value(
+        self,
+    ) -> ::core::result::Result<rune::runtime::ConstValue, rune::runtime::RuntimeError> {
+        rune::runtime::ConstValue::for_struct(
+            <Self as rune::runtime::TypeHash>::HASH,
+            [
+                rune::runtime::ConstValue::from_value(self.x_axis.to_value()?)?,
+                rune::runtime::ConstValue::from_value(self.y_axis.to_value()?)?,
+                rune::runtime::ConstValue::from_value(self.z_axis.to_value()?)?,
+                rune::runtime::ConstValue::from_value(self.w_axis.to_value()?)?,
+            ],
+        )
+    }
+    #[inline]
+    fn construct() -> ::core::option::Option<rune::__private::Arc<dyn rune::runtime::ConstConstruct>>
+    {
+        struct Mat4Construct;
+
+        impl rune::runtime::ConstConstruct for Mat4Construct {
+            #[inline]
+            fn const_construct(
+                &self,
+                values: &[rune::runtime::ConstValue],
+            ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
+            {
+                let [v0, v1, v2, v3] = values else {
+                    return ::core::result::Result::Err(
+                        rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
+                    );
+                };
+                let value = Mat4 {
+                    x_axis: <Vec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v0.try_clone()?,
+                    )?,
+                    y_axis: <Vec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v1.try_clone()?,
+                    )?,
+                    z_axis: <Vec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v2.try_clone()?,
+                    )?,
+                    w_axis: <Vec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v3.try_clone()?,
+                    )?,
+                };
+                ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
+            }
+            #[inline]
+            fn runtime_construct(
+                &self,
+                values: &mut [rune::runtime::Value],
+            ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
+            {
+                let [v0, v1, v2, v3] = values else {
+                    return ::core::result::Result::Err(
+                        rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
+                    );
+                };
+                let value = Mat4 {
+                    x_axis: <Vec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v0),
+                    )?,
+                    y_axis: <Vec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v1),
+                    )?,
+                    z_axis: <Vec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v2),
+                    )?,
+                    w_axis: <Vec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v3),
+                    )?,
+                };
+                ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
+            }
+        }
+        ::core::option::Option::Some(rune::__private::Arc::new(Mat4Construct))
+    }
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: Mat4, b: rune::Value) -> Mat4 {
+    if let Ok(vec) = b.downcast::<Mat4>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut Mat4, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+impl rune::runtime::FromConstValue for Mat4 {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<Mat4>()
     }
 }

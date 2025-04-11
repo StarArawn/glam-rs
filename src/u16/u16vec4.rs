@@ -4,6 +4,8 @@
 use crate::BVec4A;
 use crate::{BVec4, I16Vec4, I64Vec4, I8Vec4, IVec4, U16Vec2, U16Vec3, U64Vec4, U8Vec4, UVec4};
 
+use rune::Any;
+
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -17,14 +19,18 @@ pub const fn u16vec4(x: u16, y: u16, z: u16, w: u16) -> U16Vec4 {
 
 /// A 4-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Any, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "cuda", repr(align(8)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct U16Vec4 {
+    #[rune(get, set, copy, meta)]
     pub x: u16,
+    #[rune(get, set, copy, meta)]
     pub y: u16,
+    #[rune(get, set, copy, meta)]
     pub z: u16,
+    #[rune(get, set, copy, meta)]
     pub w: u16,
 }
 
@@ -59,6 +65,7 @@ impl U16Vec4 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+
     pub const fn new(x: u16, y: u16, z: u16, w: u16) -> Self {
         Self { x, y, z, w }
     }
@@ -66,6 +73,7 @@ impl U16Vec4 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+
     pub const fn splat(v: u16) -> Self {
         Self {
             x: v,
@@ -137,7 +145,7 @@ impl U16Vec4 {
     /// Panics if `slice` is less than 4 elements long.
     #[inline]
     pub fn write_to_slice(self, slice: &mut [u16]) {
-        slice.copy_from_slice(&self.to_array());
+        slice[..4].copy_from_slice(&self.to_array());
     }
 
     /// Creates a 3D vector from the `x`, `y` and `z` elements of `self`, discarding `w`.
@@ -145,6 +153,7 @@ impl U16Vec4 {
     /// Truncation to [`U16Vec3`] may also be performed by using [`self.xyz()`][crate::swizzles::Vec4Swizzles::xyz()].
     #[inline]
     #[must_use]
+
     pub fn truncate(self) -> U16Vec3 {
         use crate::swizzles::Vec4Swizzles;
         self.xyz()
@@ -185,6 +194,7 @@ impl U16Vec4 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+
     pub fn dot(self, rhs: Self) -> u16 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z) + (self.w * rhs.w)
     }
@@ -201,6 +211,7 @@ impl U16Vec4 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -215,6 +226,7 @@ impl U16Vec4 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -233,6 +245,7 @@ impl U16Vec4 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -374,6 +387,7 @@ impl U16Vec4 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+
     pub fn length_squared(self) -> u16 {
         self.dot(self)
     }

@@ -2,6 +2,8 @@
 
 use crate::{BVec2, I16Vec2, I64Vec2, I8Vec2, IVec2, U16Vec2, U64Vec2, U8Vec2, UVec3};
 
+use rune::Any;
+
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -15,12 +17,14 @@ pub const fn uvec2(x: u32, y: u32) -> UVec2 {
 
 /// A 2-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Any, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "cuda", repr(align(8)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct UVec2 {
+    #[rune(get, set, copy, meta)]
     pub x: u32,
+    #[rune(get, set, copy, meta)]
     pub y: u32,
 }
 
@@ -49,6 +53,7 @@ impl UVec2 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+
     pub const fn new(x: u32, y: u32) -> Self {
         Self { x, y }
     }
@@ -56,6 +61,7 @@ impl UVec2 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+
     pub const fn splat(v: u32) -> Self {
         Self { x: v, y: v }
     }
@@ -117,12 +123,13 @@ impl UVec2 {
     /// Panics if `slice` is less than 2 elements long.
     #[inline]
     pub fn write_to_slice(self, slice: &mut [u32]) {
-        slice.copy_from_slice(&self.to_array());
+        slice[..2].copy_from_slice(&self.to_array());
     }
 
     /// Creates a 3D vector from `self` and the given `z` value.
     #[inline]
     #[must_use]
+
     pub const fn extend(self, z: u32) -> UVec3 {
         UVec3::new(self.x, self.y, z)
     }
@@ -146,6 +153,7 @@ impl UVec2 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+
     pub fn dot(self, rhs: Self) -> u32 {
         (self.x * rhs.x) + (self.y * rhs.y)
     }
@@ -162,6 +170,7 @@ impl UVec2 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -174,6 +183,7 @@ impl UVec2 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -190,6 +200,7 @@ impl UVec2 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -301,6 +312,7 @@ impl UVec2 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+
     pub fn length_squared(self) -> u32 {
         self.dot(self)
     }

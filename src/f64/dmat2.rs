@@ -4,6 +4,7 @@ use crate::{f64::math, swizzles::*, DMat3, DVec2, Mat2};
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use rune::Any;
 
 /// Creates a 2x2 matrix from two column vectors.
 #[inline(always)]
@@ -13,7 +14,7 @@ pub const fn dmat2(x_axis: DVec2, y_axis: DVec2) -> DMat2 {
 }
 
 /// A 2x2 column major matrix.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Any)]
 #[cfg_attr(feature = "cuda", repr(align(16)))]
 #[repr(C)]
 pub struct DMat2 {
@@ -223,6 +224,7 @@ impl DMat2 {
     /// Returns the transpose of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transpose(&self) -> Self {
         Self {
             x_axis: DVec2::new(self.x_axis.x, self.y_axis.x),
@@ -246,6 +248,7 @@ impl DMat2 {
     /// Will panic if the determinant of `self` is zero when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn inverse(&self) -> Self {
         let inv_det = {
             let det = self.determinant();
@@ -525,5 +528,47 @@ impl fmt::Display for DMat2 {
         } else {
             write!(f, "[{}, {}]", self.x_axis, self.y_axis)
         }
+    }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<DMat2>()?;
+
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_mul_assign)?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &DMat2, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+use rune::ToValue;
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: DMat2, b: rune::Value) -> DMat2 {
+    if let Ok(vec) = b.downcast::<DMat2>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut DMat2, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+impl rune::runtime::FromConstValue for DMat2 {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<DMat2>()
     }
 }

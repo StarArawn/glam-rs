@@ -1,3 +1,4 @@
+#![allow(ambiguous_glob_reexports)]
 /*!
 # glam
 
@@ -256,7 +257,7 @@ and benchmarks.
 The minimum supported Rust version is `1.68.2`.
 
 */
-#![doc(html_root_url = "https://docs.rs/glam/0.29.1")]
+#![doc(html_root_url = "https://docs.rs/glam/0.29.2")]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(target_arch = "spirv", feature(repr_simd))]
 #![deny(
@@ -364,3 +365,54 @@ pub use euler::EulerRot;
 /** A trait for extending [`prim@f32`] and [`prim@f64`] with extra methods. */
 mod float;
 pub use float::FloatExt;
+
+mod rune;
+
+pub fn rune_module() -> Result<::rune::Module, ::rune::ContextError> {
+    let mut module = ::rune::Module::new();
+
+    self::f32::rune_register_types(&mut module)?;
+    self::f64::rune_register_types(&mut module)?;
+
+    module.ty::<EulerRot>()?;
+
+    Ok(module)
+}
+
+pub(crate) mod f32_const_value {
+    use rune::runtime::{ConstValue, RuntimeError, Value};
+
+    #[inline]
+    pub(super) fn to_const_value(value: f32) -> Result<ConstValue, RuntimeError> {
+        rune::to_const_value(value)
+    }
+
+    #[inline]
+    pub(super) fn from_const_value(value: &ConstValue) -> Result<f32, RuntimeError> {
+        value.as_float().map(|x| x as f32)
+    }
+
+    #[inline]
+    pub(super) fn from_value(value: Value) -> Result<f32, RuntimeError> {
+        rune::from_value::<f32>(value)
+    }
+}
+
+pub(crate) mod f64_const_value {
+    use rune::runtime::{ConstValue, RuntimeError, Value};
+
+    #[inline]
+    pub(super) fn to_const_value(value: f64) -> Result<ConstValue, RuntimeError> {
+        rune::to_const_value(value)
+    }
+
+    #[inline]
+    pub(super) fn from_const_value(value: &ConstValue) -> Result<f64, RuntimeError> {
+        value.as_float()
+    }
+
+    #[inline]
+    pub(super) fn from_value(value: Value) -> Result<f64, RuntimeError> {
+        rune::from_value::<f64>(value)
+    }
+}

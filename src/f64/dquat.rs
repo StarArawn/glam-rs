@@ -9,6 +9,7 @@ use crate::{
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, Div, Mul, MulAssign, Neg, Sub};
+use rune::Any;
 
 /// Creates a quaternion from `x`, `y`, `z` and `w` values.
 ///
@@ -25,7 +26,7 @@ pub const fn dquat(x: f64, y: f64, z: f64, w: f64) -> DQuat {
 /// This quaternion is intended to be of unit length but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
-#[derive(Clone, Copy)]
+#[derive(Any, Clone, Copy)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct DQuat {
@@ -58,6 +59,7 @@ impl DQuat {
     /// provide normalized input or to normalized the resulting quaternion.
     #[inline(always)]
     #[must_use]
+    #[rune::function(keep, path = Self::from_xyzw)]
     pub const fn from_xyzw(x: f64, y: f64, z: f64, w: f64) -> Self {
         Self { x, y, z, w }
     }
@@ -82,6 +84,7 @@ impl DQuat {
     /// provide normalized input or to normalized the resulting quaternion.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_vec4)]
     pub const fn from_vec4(v: DVec4) -> Self {
         Self {
             x: v.x,
@@ -129,6 +132,7 @@ impl DQuat {
     /// Will panic if `axis` is not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_axis_angle)]
     pub fn from_axis_angle(axis: DVec3, angle: f64) -> Self {
         glam_assert!(axis.is_normalized());
         let (s, c) = math::sin_cos(angle * 0.5);
@@ -153,6 +157,7 @@ impl DQuat {
     /// Creates a quaternion from the `angle` (in radians) around the x axis.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_rotation_x)]
     pub fn from_rotation_x(angle: f64) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(s, 0.0, 0.0, c)
@@ -161,6 +166,7 @@ impl DQuat {
     /// Creates a quaternion from the `angle` (in radians) around the y axis.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_rotation_y)]
     pub fn from_rotation_y(angle: f64) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(0.0, s, 0.0, c)
@@ -169,6 +175,7 @@ impl DQuat {
     /// Creates a quaternion from the `angle` (in radians) around the z axis.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_rotation_z)]
     pub fn from_rotation_z(angle: f64) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(0.0, 0.0, s, c)
@@ -177,6 +184,7 @@ impl DQuat {
     /// Creates a quaternion from the given Euler rotation sequence and the angles (in radians).
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_euler)]
     pub fn from_euler(euler: EulerRot, a: f64, b: f64, c: f64) -> Self {
         Self::from_euler_angles(euler, a, b, c)
     }
@@ -405,6 +413,7 @@ impl DQuat {
     /// Returns the rotation angles for the given euler rotation sequence.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn to_euler(self, order: EulerRot) -> (f64, f64, f64) {
         self.to_euler_angles(order)
     }
@@ -427,6 +436,7 @@ impl DQuat {
     /// conjugate is also the inverse.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn conjugate(self) -> Self {
         Self {
             x: -self.x,
@@ -447,6 +457,7 @@ impl DQuat {
     /// Will panic if `self` is not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn inverse(self) -> Self {
         glam_assert!(self.is_normalized());
         self.conjugate()
@@ -456,6 +467,7 @@ impl DQuat {
     /// equal to the cosine of the angle between two quaternion rotations.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn dot(self, rhs: Self) -> f64 {
         DVec4::from(self).dot(DVec4::from(rhs))
     }
@@ -464,6 +476,7 @@ impl DQuat {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length(self) -> f64 {
         DVec4::from(self).length()
     }
@@ -475,6 +488,7 @@ impl DQuat {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length_squared(self) -> f64 {
         DVec4::from(self).length_squared()
     }
@@ -497,6 +511,7 @@ impl DQuat {
     /// Will panic if `self` is zero length when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn normalize(self) -> Self {
         Self::from_vec4(DVec4::from(self).normalize())
     }
@@ -618,6 +633,7 @@ impl DQuat {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn lerp(self, end: Self, s: f64) -> Self {
         glam_assert!(self.is_normalized());
         glam_assert!(end.is_normalized());
@@ -638,6 +654,7 @@ impl DQuat {
     /// Will panic if `self` or `end` are not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn slerp(self, mut end: Self, s: f64) -> Self {
         // http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
         glam_assert!(self.is_normalized());
@@ -936,5 +953,36 @@ impl From<DQuat> for [f64; 4] {
     #[inline]
     fn from(q: DQuat) -> Self {
         [q.x, q.y, q.z, q.w]
+    }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<DQuat>()?;
+    module.function_meta(DQuat::from_xyzw__meta)?;
+    module.function_meta(DQuat::from_vec4__meta)?;
+    module.function_meta(DQuat::from_axis_angle__meta)?;
+    module.function_meta(DQuat::from_rotation_x__meta)?;
+    module.function_meta(DQuat::from_rotation_y__meta)?;
+    module.function_meta(DQuat::from_rotation_z__meta)?;
+    module.function_meta(DQuat::from_euler__meta)?;
+    module.function_meta(DQuat::to_euler__meta)?;
+    module.function_meta(DQuat::conjugate__meta)?;
+    module.function_meta(DQuat::inverse__meta)?;
+    module.function_meta(DQuat::dot__meta)?;
+    module.function_meta(DQuat::length__meta)?;
+    module.function_meta(DQuat::normalize__meta)?;
+    module.function_meta(DQuat::lerp__meta)?;
+    module.function_meta(DQuat::slerp__meta)?;
+    module.function_meta(rune_mul)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: DQuat, b: rune::Value) -> DQuat {
+    if let Ok(vec) = b.downcast::<DQuat>() {
+        a * vec
+    } else {
+        a
     }
 }

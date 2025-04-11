@@ -179,3 +179,23 @@ mod test {
         const_assert_eq!(16, core::mem::size_of::<super::Vec4>());
     }
 }
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    self::vec2::rune_register_types(module)?;
+    self::vec3::rune_register_types(module)?;
+    self::vec4::rune_register_types(module)?;
+    self::mat3::rune_register_types(module)?;
+
+    #[cfg(all(
+        target_arch = "aarch64",
+        not(any(feature = "core-simd", feature = "scalar-math"))
+    ))]
+    {
+        self::neon::quat::rune_register_types(module)?;
+        self::neon::vec3a::rune_register_types(module)?;
+        self::neon::mat2::rune_register_types(module)?;
+        self::neon::mat3a::rune_register_types(module)?;
+        self::neon::mat4::rune_register_types(module)?;
+    }
+    Ok(())
+}

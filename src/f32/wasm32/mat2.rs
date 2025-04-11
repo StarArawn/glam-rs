@@ -4,6 +4,7 @@ use crate::{f32::math, swizzles::*, DMat2, Mat3, Mat3A, Vec2};
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use rune::Any;
 
 use core::arch::wasm32::*;
 
@@ -19,7 +20,7 @@ pub const fn mat2(x_axis: Vec2, y_axis: Vec2) -> Mat2 {
 /// SIMD vector types are used for storage on supported platforms.
 ///
 /// This type is 16 byte aligned.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Any)]
 #[repr(transparent)]
 pub struct Mat2(pub(crate) v128);
 
@@ -252,6 +253,7 @@ impl Mat2 {
     /// Returns the transpose of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transpose(&self) -> Self {
         Self(i32x4_shuffle::<0, 2, 5, 7>(self.0, self.0))
     }
@@ -276,6 +278,7 @@ impl Mat2 {
     /// Will panic if the determinant of `self` is zero when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn inverse(&self) -> Self {
         const SIGN: v128 = crate::wasm32::v128_from_f32x4([1.0, -1.0, -1.0, 1.0]);
         let abcd = self.0;
@@ -584,5 +587,47 @@ impl fmt::Display for Mat2 {
         } else {
             write!(f, "[{}, {}]", self.x_axis, self.y_axis)
         }
+    }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<Mat2>()?;
+
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_mul_assign)?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &Mat2, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+use rune::ToValue;
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: Mat2, b: rune::Value) -> Mat2 {
+    if let Ok(vec) = b.downcast::<Mat2>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut Mat2, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+impl rune::runtime::FromConstValue for Mat2 {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<Mat2>()
     }
 }

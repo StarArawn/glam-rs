@@ -3,19 +3,19 @@ mod outputs;
 use anyhow::{bail, Context};
 use clap::{arg, command};
 use rustfmt_wrapper::rustfmt;
-use std::path::Path;
+use std::path::PathBuf;
 
 use outputs::build_output_pairs;
 
 const GLAM_ROOT: &str = "..";
 
-fn is_modified(repo: &git2::Repository, output_path: &str) -> anyhow::Result<bool> {
-    match repo.status_file(Path::new(output_path)) {
-        Ok(status) => Ok(status.is_wt_modified()),
-        Err(e) if e.code() == git2::ErrorCode::NotFound => Ok(false),
-        Err(e) => Err(e).with_context(|| format!("git file status failed for {output_path}")),
-    }
-}
+// fn is_modified(repo: &git2::Repository, output_path: &str) -> anyhow::Result<bool> {
+//     match repo.status_file(Path::new(output_path)) {
+//         Ok(status) => Ok(status.is_wt_modified()),
+//         Err(e) if e.code() == git2::ErrorCode::NotFound => Ok(false),
+//         Err(e) => Err(e).with_context(|| format!("git file status failed for {output_path}")),
+//     }
+// }
 
 fn generate_file(
     tera: &tera::Tera,
@@ -39,7 +39,6 @@ fn main() -> anyhow::Result<()> {
         .arg(arg!(-v - -verbose))
         .get_matches();
 
-    let force = matches.is_present("force");
     let stdout = matches.is_present("stdout");
     let fmt_output = !matches.is_present("nofmt");
     let output_path_glob = matches.value_of("GLOB");
@@ -62,8 +61,8 @@ fn main() -> anyhow::Result<()> {
     };
     let tera = tera::Tera::new("templates/**/*.rs.tera").context("tera parsing error(s)")?;
 
-    let repo = git2::Repository::open(GLAM_ROOT).context("failed to open git repo")?;
-    let workdir = repo.workdir().unwrap();
+    // let repo = git2::Repository::open(GLAM_ROOT).context("failed to open git repo")?;
+    let workdir: PathBuf = GLAM_ROOT.into();
 
     let output_pairs = build_output_pairs();
 
@@ -94,12 +93,12 @@ fn main() -> anyhow::Result<()> {
         let context = output_pairs.get(output_path).unwrap();
         let template_path = context.get("template_path").unwrap().as_str().unwrap();
 
-        if !(check || force || stdout) && is_modified(&repo, output_path)? {
-            bail!(
-                "{} is already modified, use  `-f` to force overwrite or revert local changes.",
-                output_path
-            );
-        }
+        // if !(check || force || stdout) && is_modified(&repo, output_path)? {
+        //     bail!(
+        //         "{} is already modified, use  `-f` to force overwrite or revert local changes.",
+        //         output_path
+        //     );
+        // }
 
         let mut output_str = generate_file(&tera, context, template_path)?;
 

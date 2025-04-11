@@ -9,6 +9,7 @@ use crate::{
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use rune::Any;
 
 /// Creates a 4x4 matrix from four column vectors.
 #[inline(always)]
@@ -46,7 +47,7 @@ pub const fn dmat4(x_axis: DVec4, y_axis: DVec4, z_axis: DVec4, w_axis: DVec4) -
 ///
 /// The resulting perspective project can be use to transform 3D vectors as points with
 /// perspective correction using the [`Self::project_point3()`] convenience method.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Any)]
 #[cfg_attr(feature = "cuda", repr(align(16)))]
 #[repr(C)]
 pub struct DMat4 {
@@ -585,6 +586,7 @@ impl DMat4 {
     /// Returns the transpose of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transpose(&self) -> Self {
         Self {
             x_axis: DVec4::new(self.x_axis.x, self.y_axis.x, self.z_axis.x, self.w_axis.x),
@@ -623,6 +625,7 @@ impl DMat4 {
     ///
     /// Will panic if the determinant of `self` is zero when `glam_assert` is enabled.
     #[must_use]
+    #[rune::function(keep)]
     pub fn inverse(&self) -> Self {
         let (m00, m01, m02, m03) = self.x_axis.into();
         let (m10, m11, m12, m13) = self.y_axis.into();
@@ -1043,6 +1046,7 @@ impl DMat4 {
     /// Will panic if the 3rd row of `self` is not `(0, 0, 0, 1)` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transform_point3(&self, rhs: DVec3) -> DVec3 {
         glam_assert!(self.row(3).abs_diff_eq(DVec4::W, 1e-6));
         let mut res = self.x_axis.mul(rhs.x);
@@ -1064,6 +1068,7 @@ impl DMat4 {
     /// Will panic if the 3rd row of `self` is not `(0, 0, 0, 1)` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn transform_vector3(&self, rhs: DVec3) -> DVec3 {
         glam_assert!(self.row(3).abs_diff_eq(DVec4::W, 1e-6));
         let mut res = self.x_axis.mul(rhs.x);
@@ -1392,5 +1397,137 @@ impl fmt::Display for DMat4 {
                 self.x_axis, self.y_axis, self.z_axis, self.w_axis
             )
         }
+    }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<DMat4>()?;
+
+    module.function_meta(DMat4::transform_point3__meta)?;
+    module.function_meta(DMat4::transform_vector3__meta)?;
+
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_mul_assign)?;
+
+    // TODO: Doesn't work. Fix somehow?
+    // module
+    //    .constant("IDENTITY", DMat4::IDENTITY)
+    //    .build_associated::<DMat4>()?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &DMat4, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+use rune::ToValue;
+
+use rune::alloc::clone::TryClone;
+use rune::FromValue;
+impl rune::runtime::ToConstValue for DMat4 {
+    #[inline]
+    fn to_const_value(
+        self,
+    ) -> ::core::result::Result<rune::runtime::ConstValue, rune::runtime::RuntimeError> {
+        rune::runtime::ConstValue::for_struct(
+            <Self as rune::runtime::TypeHash>::HASH,
+            [
+                rune::runtime::ConstValue::from_value(self.x_axis.to_value()?)?,
+                rune::runtime::ConstValue::from_value(self.y_axis.to_value()?)?,
+                rune::runtime::ConstValue::from_value(self.z_axis.to_value()?)?,
+                rune::runtime::ConstValue::from_value(self.w_axis.to_value()?)?,
+            ],
+        )
+    }
+    #[inline]
+    fn construct() -> ::core::option::Option<rune::__private::Arc<dyn rune::runtime::ConstConstruct>>
+    {
+        struct DMat4Construct;
+
+        impl rune::runtime::ConstConstruct for DMat4Construct {
+            #[inline]
+            fn const_construct(
+                &self,
+                values: &[rune::runtime::ConstValue],
+            ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
+            {
+                let [v0, v1, v2, v3] = values else {
+                    return ::core::result::Result::Err(
+                        rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
+                    );
+                };
+                let value = DMat4 {
+                    x_axis: <DVec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v0.try_clone()?,
+                    )?,
+                    y_axis: <DVec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v1.try_clone()?,
+                    )?,
+                    z_axis: <DVec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v2.try_clone()?,
+                    )?,
+                    w_axis: <DVec4 as rune::runtime::FromConstValue>::from_const_value(
+                        v3.try_clone()?,
+                    )?,
+                };
+                ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
+            }
+            #[inline]
+            fn runtime_construct(
+                &self,
+                values: &mut [rune::runtime::Value],
+            ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
+            {
+                let [v0, v1, v2, v3] = values else {
+                    return ::core::result::Result::Err(
+                        rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
+                    );
+                };
+                let value = DMat4 {
+                    x_axis: <DVec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v0),
+                    )?,
+                    y_axis: <DVec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v1),
+                    )?,
+                    z_axis: <DVec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v2),
+                    )?,
+                    w_axis: <DVec4 as rune::runtime::FromValue>::from_value(
+                        rune::runtime::Value::take(v3),
+                    )?,
+                };
+                ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
+            }
+        }
+        ::core::option::Option::Some(rune::__private::Arc::new(DMat4Construct))
+    }
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: DMat4, b: rune::Value) -> DMat4 {
+    if let Ok(vec) = b.downcast::<DMat4>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut DMat4, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+impl rune::runtime::FromConstValue for DMat4 {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<DMat4>()
     }
 }

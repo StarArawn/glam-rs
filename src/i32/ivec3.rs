@@ -4,6 +4,8 @@ use crate::{
     BVec3, BVec3A, I16Vec3, I64Vec3, I8Vec3, IVec2, IVec4, U16Vec3, U64Vec3, U8Vec3, UVec3,
 };
 
+use rune::Any;
+
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -17,12 +19,15 @@ pub const fn ivec3(x: i32, y: i32, z: i32) -> IVec3 {
 
 /// A 3-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Any, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct IVec3 {
+    #[rune(get, set, copy, meta)]
     pub x: i32,
+    #[rune(get, set, copy, meta)]
     pub y: i32,
+    #[rune(get, set, copy, meta)]
     pub z: i32,
 }
 
@@ -66,6 +71,7 @@ impl IVec3 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+
     pub const fn new(x: i32, y: i32, z: i32) -> Self {
         Self { x, y, z }
     }
@@ -73,6 +79,7 @@ impl IVec3 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+
     pub const fn splat(v: i32) -> Self {
         Self { x: v, y: v, z: v }
     }
@@ -135,7 +142,7 @@ impl IVec3 {
     /// Panics if `slice` is less than 3 elements long.
     #[inline]
     pub fn write_to_slice(self, slice: &mut [i32]) {
-        slice.copy_from_slice(&self.to_array());
+        slice[..3].copy_from_slice(&self.to_array());
     }
 
     /// Internal method for creating a 3D vector from a 4D vector, discarding `w`.
@@ -153,6 +160,7 @@ impl IVec3 {
     /// Creates a 4D vector from `self` and the given `w` value.
     #[inline]
     #[must_use]
+
     pub fn extend(self, w: i32) -> IVec4 {
         IVec4::new(self.x, self.y, self.z, w)
     }
@@ -162,6 +170,7 @@ impl IVec3 {
     /// Truncation may also be performed by using [`self.xy()`][crate::swizzles::Vec3Swizzles::xy()].
     #[inline]
     #[must_use]
+
     pub fn truncate(self) -> IVec2 {
         use crate::swizzles::Vec3Swizzles;
         self.xy()
@@ -194,6 +203,7 @@ impl IVec3 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+
     pub fn dot(self, rhs: Self) -> i32 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
@@ -208,6 +218,7 @@ impl IVec3 {
     /// Computes the cross product of `self` and `rhs`.
     #[inline]
     #[must_use]
+
     pub fn cross(self, rhs: Self) -> Self {
         Self {
             x: self.y * rhs.z - rhs.y * self.z,
@@ -221,6 +232,7 @@ impl IVec3 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -234,6 +246,7 @@ impl IVec3 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -251,6 +264,7 @@ impl IVec3 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -361,6 +375,7 @@ impl IVec3 {
     /// Returns a vector containing the absolute value of each element of `self`.
     #[inline]
     #[must_use]
+
     pub fn abs(self) -> Self {
         Self {
             x: self.x.abs(),
@@ -376,6 +391,7 @@ impl IVec3 {
     ///  - `-1` if the number is negative
     #[inline]
     #[must_use]
+
     pub fn signum(self) -> Self {
         Self {
             x: self.x.signum(),
@@ -400,6 +416,7 @@ impl IVec3 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+
     pub fn length_squared(self) -> i32 {
         self.dot(self)
     }
@@ -407,6 +424,7 @@ impl IVec3 {
     /// Compute the squared euclidean distance between two points in space.
     #[inline]
     #[must_use]
+
     pub fn distance_squared(self, rhs: Self) -> i32 {
         (self - rhs).length_squared()
     }

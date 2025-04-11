@@ -12,6 +12,7 @@ use core::simd::*;
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, Deref, DerefMut, Div, Mul, MulAssign, Neg, Sub};
+use rune::Any;
 
 /// Creates a quaternion from `x`, `y`, `z` and `w` values.
 ///
@@ -32,7 +33,7 @@ pub const fn quat(x: f32, y: f32, z: f32, w: f32) -> Quat {
 /// SIMD vector types are used for storage on supported platforms.
 ///
 /// This type is 16 byte aligned.
-#[derive(Clone, Copy)]
+#[derive(Any, Clone, Copy)]
 #[repr(transparent)]
 pub struct Quat(pub(crate) f32x4);
 
@@ -59,6 +60,7 @@ impl Quat {
     /// provide normalized input or to normalized the resulting quaternion.
     #[inline(always)]
     #[must_use]
+    #[rune::function(keep, path = Self::from_xyzw)]
     pub const fn from_xyzw(x: f32, y: f32, z: f32, w: f32) -> Self {
         Self(f32x4::from_array([x, y, z, w]))
     }
@@ -83,6 +85,7 @@ impl Quat {
     /// provide normalized input or to normalized the resulting quaternion.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_vec4)]
     pub const fn from_vec4(v: Vec4) -> Self {
         Self(v.0)
     }
@@ -125,6 +128,7 @@ impl Quat {
     /// Will panic if `axis` is not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_axis_angle)]
     pub fn from_axis_angle(axis: Vec3, angle: f32) -> Self {
         glam_assert!(axis.is_normalized());
         let (s, c) = math::sin_cos(angle * 0.5);
@@ -149,6 +153,7 @@ impl Quat {
     /// Creates a quaternion from the `angle` (in radians) around the x axis.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_rotation_x)]
     pub fn from_rotation_x(angle: f32) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(s, 0.0, 0.0, c)
@@ -157,6 +162,7 @@ impl Quat {
     /// Creates a quaternion from the `angle` (in radians) around the y axis.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_rotation_y)]
     pub fn from_rotation_y(angle: f32) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(0.0, s, 0.0, c)
@@ -165,6 +171,7 @@ impl Quat {
     /// Creates a quaternion from the `angle` (in radians) around the z axis.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_rotation_z)]
     pub fn from_rotation_z(angle: f32) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(0.0, 0.0, s, c)
@@ -173,6 +180,7 @@ impl Quat {
     /// Creates a quaternion from the given Euler rotation sequence and the angles (in radians).
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::from_euler)]
     pub fn from_euler(euler: EulerRot, a: f32, b: f32, c: f32) -> Self {
         Self::from_euler_angles(euler, a, b, c)
     }
@@ -415,6 +423,7 @@ impl Quat {
     /// Returns the rotation angles for the given euler rotation sequence.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn to_euler(self, order: EulerRot) -> (f32, f32, f32) {
         self.to_euler_angles(order)
     }
@@ -437,6 +446,7 @@ impl Quat {
     /// conjugate is also the inverse.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn conjugate(self) -> Self {
         const SIGN: f32x4 = f32x4::from_array([-1.0, -1.0, -1.0, 1.0]);
         Self(self.0.mul(SIGN))
@@ -453,6 +463,7 @@ impl Quat {
     /// Will panic if `self` is not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn inverse(self) -> Self {
         glam_assert!(self.is_normalized());
         self.conjugate()
@@ -462,6 +473,7 @@ impl Quat {
     /// equal to the cosine of the angle between two quaternion rotations.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn dot(self, rhs: Self) -> f32 {
         Vec4::from(self).dot(Vec4::from(rhs))
     }
@@ -470,6 +482,7 @@ impl Quat {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length(self) -> f32 {
         Vec4::from(self).length()
     }
@@ -481,6 +494,7 @@ impl Quat {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length_squared(self) -> f32 {
         Vec4::from(self).length_squared()
     }
@@ -503,6 +517,7 @@ impl Quat {
     /// Will panic if `self` is zero length when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn normalize(self) -> Self {
         Self::from_vec4(Vec4::from(self).normalize())
     }
@@ -624,6 +639,7 @@ impl Quat {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn lerp(self, end: Self, s: f32) -> Self {
         glam_assert!(self.is_normalized());
         glam_assert!(end.is_normalized());
@@ -647,6 +663,7 @@ impl Quat {
     /// Will panic if `self` or `end` are not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn slerp(self, mut end: Self, s: f32) -> Self {
         // http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
         glam_assert!(self.is_normalized());
@@ -1009,5 +1026,36 @@ impl DerefMut for Quat {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *(self as *mut Self).cast() }
+    }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<Quat>()?;
+    module.function_meta(Quat::from_xyzw__meta)?;
+    module.function_meta(Quat::from_vec4__meta)?;
+    module.function_meta(Quat::from_axis_angle__meta)?;
+    module.function_meta(Quat::from_rotation_x__meta)?;
+    module.function_meta(Quat::from_rotation_y__meta)?;
+    module.function_meta(Quat::from_rotation_z__meta)?;
+    module.function_meta(Quat::from_euler__meta)?;
+    module.function_meta(Quat::to_euler__meta)?;
+    module.function_meta(Quat::conjugate__meta)?;
+    module.function_meta(Quat::inverse__meta)?;
+    module.function_meta(Quat::dot__meta)?;
+    module.function_meta(Quat::length__meta)?;
+    module.function_meta(Quat::normalize__meta)?;
+    module.function_meta(Quat::lerp__meta)?;
+    module.function_meta(Quat::slerp__meta)?;
+    module.function_meta(rune_mul)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: Quat, b: rune::Value) -> Quat {
+    if let Ok(vec) = b.downcast::<Quat>() {
+        a * vec
+    } else {
+        a
     }
 }

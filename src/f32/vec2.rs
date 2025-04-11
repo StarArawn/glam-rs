@@ -2,6 +2,12 @@
 
 use crate::{f32::math, BVec2, Vec3};
 
+use rune::Any;
+
+use rune::ToConstValue;
+
+use rune::ToValue;
+
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -14,12 +20,16 @@ pub const fn vec2(x: f32, y: f32) -> Vec2 {
 }
 
 /// A 2-dimensional vector.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Any, ToConstValue, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "cuda", repr(align(8)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct Vec2 {
+    #[rune(get, set, copy, meta)]
+    #[const_value(with = crate::f32_const_value)]
     pub x: f32,
+    #[rune(get, set, copy, meta)]
+    #[const_value(with = crate::f32_const_value)]
     pub y: f32,
 }
 
@@ -66,6 +76,8 @@ impl Vec2 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+    #[rune::function(keep, path = Self::new)]
+
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
@@ -73,6 +85,8 @@ impl Vec2 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+    #[rune::function(keep, path = Self::splat)]
+
     pub const fn splat(v: f32) -> Self {
         Self { x: v, y: v }
     }
@@ -134,12 +148,13 @@ impl Vec2 {
     /// Panics if `slice` is less than 2 elements long.
     #[inline]
     pub fn write_to_slice(self, slice: &mut [f32]) {
-        slice.copy_from_slice(&self.to_array());
+        slice[..2].copy_from_slice(&self.to_array());
     }
 
     /// Creates a 3D vector from `self` and the given `z` value.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub const fn extend(self, z: f32) -> Vec3 {
         Vec3::new(self.x, self.y, z)
     }
@@ -163,6 +178,7 @@ impl Vec2 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn dot(self, rhs: Self) -> f32 {
         (self.x * rhs.x) + (self.y * rhs.y)
     }
@@ -179,6 +195,7 @@ impl Vec2 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -191,6 +208,7 @@ impl Vec2 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -207,6 +225,7 @@ impl Vec2 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -317,6 +336,7 @@ impl Vec2 {
     /// Returns a vector containing the absolute value of each element of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn abs(self) -> Self {
         Self {
             x: math::abs(self.x),
@@ -331,6 +351,7 @@ impl Vec2 {
     /// - `NAN` if the number is `NAN`
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn signum(self) -> Self {
         Self {
             x: math::signum(self.x),
@@ -376,6 +397,7 @@ impl Vec2 {
     /// Returns `true` if any elements are `NaN`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn is_nan(self) -> bool {
         self.x.is_nan() || self.y.is_nan()
     }
@@ -393,6 +415,7 @@ impl Vec2 {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length(self) -> f32 {
         math::sqrt(self.dot(self))
     }
@@ -403,6 +426,7 @@ impl Vec2 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn length_squared(self) -> f32 {
         self.dot(self)
     }
@@ -419,6 +443,7 @@ impl Vec2 {
     /// Computes the Euclidean distance between two points in space.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn distance(self, rhs: Self) -> f32 {
         (self - rhs).length()
     }
@@ -426,6 +451,7 @@ impl Vec2 {
     /// Compute the squared euclidean distance between two points in space.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn distance_squared(self, rhs: Self) -> f32 {
         (self - rhs).length_squared()
     }
@@ -463,6 +489,7 @@ impl Vec2 {
     /// Will panic if the resulting normalized vector is not finite when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn normalize(self) -> Self {
         #[allow(clippy::let_and_return)]
         let normalized = self.mul(self.length_recip());
@@ -604,6 +631,7 @@ impl Vec2 {
     /// element of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn floor(self) -> Self {
         Self {
             x: math::floor(self.x),
@@ -615,6 +643,7 @@ impl Vec2 {
     /// each element of `self`.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn ceil(self) -> Self {
         Self {
             x: math::ceil(self.x),
@@ -641,6 +670,7 @@ impl Vec2 {
     /// Note that this is fast but not precise for large numbers.
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn fract(self) -> Self {
         self - self.trunc()
     }
@@ -690,6 +720,7 @@ impl Vec2 {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
+    #[rune::function(keep)]
     pub fn lerp(self, rhs: Self, s: f32) -> Self {
         self * (1.0 - s) + rhs * s
     }
@@ -1832,4 +1863,136 @@ impl From<BVec2> for Vec2 {
     fn from(v: BVec2) -> Self {
         Self::new(f32::from(v.x), f32::from(v.y))
     }
+}
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    module.ty::<Vec2>()?;
+    module.function_meta(Vec2::new__meta)?;
+    module.function_meta(Vec2::splat__meta)?;
+
+    module.function_meta(Vec2::extend__meta)?;
+
+    module.function_meta(Vec2::dot__meta)?;
+
+    module
+        .constant("ZERO", Vec2::ZERO)
+        .build_associated::<Vec2>()?;
+
+    module.function_meta(Vec2::min__meta)?;
+    module.function_meta(Vec2::max__meta)?;
+    module.function_meta(Vec2::clamp__meta)?;
+    module.function_meta(Vec2::abs__meta)?;
+    module.function_meta(Vec2::length__meta)?;
+    module.function_meta(Vec2::length_squared__meta)?;
+    module.function_meta(Vec2::distance__meta)?;
+    module.function_meta(Vec2::floor__meta)?;
+    module.function_meta(Vec2::ceil__meta)?;
+    module.function_meta(Vec2::fract__meta)?;
+    module.function_meta(Vec2::lerp__meta)?;
+
+    module.function_meta(rune_add)?;
+    module.function_meta(rune_sub)?;
+    module.function_meta(rune_div)?;
+    module.function_meta(rune_mul)?;
+    module.function_meta(rune_add_assign)?;
+    module.function_meta(rune_sub_assign)?;
+    module.function_meta(rune_div_assign)?;
+    module.function_meta(rune_mul_assign)?;
+
+    module.function_meta(clone_vec)?;
+    module.implement_trait::<Vec2>(rune::item!(::std::clone::Clone))?;
+
+    module.function_meta(debug)?;
+
+    Ok(())
+}
+
+#[rune::function(instance, protocol = CLONE)]
+fn clone_vec(this: &Vec2) -> rune::runtime::VmResult<Vec2> {
+    rune::runtime::VmResult::Ok(this.clone())
+}
+
+#[rune::function(instance, protocol = DEBUG_FMT)]
+fn debug(this: &Vec2, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+    use rune::alloc::fmt::TryWrite;
+    rune::vm_write!(f, "{:?}", this)
+}
+
+impl rune::runtime::FromConstValue for Vec2 {
+    fn from_const_value(
+        value: rune::runtime::ConstValue,
+    ) -> Result<Self, rune::runtime::RuntimeError> {
+        let value = value.to_value()?;
+        value.downcast::<Vec2>()
+    }
+}
+
+impl rune::alloc::prelude::TryClone for Vec2 {
+    fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
+        Ok(*self)
+    }
+}
+
+#[rune::function(instance, protocol = ADD)]
+fn rune_add(a: Vec2, b: rune::Value) -> Vec2 {
+    if let Ok(f) = b.as_float() {
+        a + f as f32
+    } else if let Ok(vec) = b.downcast::<Vec2>() {
+        a + vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = SUB)]
+fn rune_sub(a: Vec2, b: rune::Value) -> Vec2 {
+    if let Ok(f) = b.as_float() {
+        a - f as f32
+    } else if let Ok(vec) = b.downcast::<Vec2>() {
+        a - vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = MUL)]
+fn rune_mul(a: Vec2, b: rune::Value) -> Vec2 {
+    if let Ok(f) = b.as_float() {
+        a * f as f32
+    } else if let Ok(vec) = b.downcast::<Vec2>() {
+        a * vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = DIV)]
+fn rune_div(a: Vec2, b: rune::Value) -> Vec2 {
+    if let Ok(f) = b.as_float() {
+        a / f as f32
+    } else if let Ok(vec) = b.downcast::<Vec2>() {
+        a / vec
+    } else {
+        a
+    }
+}
+
+#[rune::function(instance, protocol = ADD_ASSIGN)]
+fn rune_add_assign(a: &mut Vec2, b: rune::Value) {
+    *a = __rune_fn__rune_add(*a, b);
+}
+
+#[rune::function(instance, protocol = SUB_ASSIGN)]
+fn rune_sub_assign(a: &mut Vec2, b: rune::Value) {
+    *a = __rune_fn__rune_sub(*a, b);
+}
+
+#[rune::function(instance, protocol = MUL_ASSIGN)]
+fn rune_mul_assign(a: &mut Vec2, b: rune::Value) {
+    *a = __rune_fn__rune_mul(*a, b);
+}
+
+#[rune::function(instance, protocol = DIV_ASSIGN)]
+fn rune_div_assign(a: &mut Vec2, b: rune::Value) {
+    *a = __rune_fn__rune_div(*a, b);
 }

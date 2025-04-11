@@ -4,6 +4,8 @@
 use crate::BVec4A;
 use crate::{BVec4, I16Vec2, I16Vec3, I64Vec4, I8Vec4, IVec4, U16Vec4, U64Vec4, U8Vec4, UVec4};
 
+use rune::Any;
+
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
@@ -17,14 +19,18 @@ pub const fn i16vec4(x: i16, y: i16, z: i16, w: i16) -> I16Vec4 {
 
 /// A 4-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Any, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "cuda", repr(align(8)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct I16Vec4 {
+    #[rune(get, set, copy, meta)]
     pub x: i16,
+    #[rune(get, set, copy, meta)]
     pub y: i16,
+    #[rune(get, set, copy, meta)]
     pub z: i16,
+    #[rune(get, set, copy, meta)]
     pub w: i16,
 }
 
@@ -74,6 +80,7 @@ impl I16Vec4 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
+
     pub const fn new(x: i16, y: i16, z: i16, w: i16) -> Self {
         Self { x, y, z, w }
     }
@@ -81,6 +88,7 @@ impl I16Vec4 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
+
     pub const fn splat(v: i16) -> Self {
         Self {
             x: v,
@@ -152,7 +160,7 @@ impl I16Vec4 {
     /// Panics if `slice` is less than 4 elements long.
     #[inline]
     pub fn write_to_slice(self, slice: &mut [i16]) {
-        slice.copy_from_slice(&self.to_array());
+        slice[..4].copy_from_slice(&self.to_array());
     }
 
     /// Creates a 3D vector from the `x`, `y` and `z` elements of `self`, discarding `w`.
@@ -160,6 +168,7 @@ impl I16Vec4 {
     /// Truncation to [`I16Vec3`] may also be performed by using [`self.xyz()`][crate::swizzles::Vec4Swizzles::xyz()].
     #[inline]
     #[must_use]
+
     pub fn truncate(self) -> I16Vec3 {
         use crate::swizzles::Vec4Swizzles;
         self.xyz()
@@ -200,6 +209,7 @@ impl I16Vec4 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
+
     pub fn dot(self, rhs: Self) -> i16 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z) + (self.w * rhs.w)
     }
@@ -216,6 +226,7 @@ impl I16Vec4 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -230,6 +241,7 @@ impl I16Vec4 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
+
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -248,6 +260,7 @@ impl I16Vec4 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
+
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -388,6 +401,7 @@ impl I16Vec4 {
     /// Returns a vector containing the absolute value of each element of `self`.
     #[inline]
     #[must_use]
+
     pub fn abs(self) -> Self {
         Self {
             x: self.x.abs(),
@@ -404,6 +418,7 @@ impl I16Vec4 {
     ///  - `-1` if the number is negative
     #[inline]
     #[must_use]
+
     pub fn signum(self) -> Self {
         Self {
             x: self.x.signum(),
@@ -430,6 +445,7 @@ impl I16Vec4 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
+
     pub fn length_squared(self) -> i16 {
         self.dot(self)
     }
@@ -437,6 +453,7 @@ impl I16Vec4 {
     /// Compute the squared euclidean distance between two points in space.
     #[inline]
     #[must_use]
+
     pub fn distance_squared(self, rhs: Self) -> i16 {
         (self - rhs).length_squared()
     }

@@ -1,6 +1,7 @@
 // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.  Academic Press
 // Professional, Inc., USA, 222–229.
 use crate::{DMat3, DMat4, DQuat, DVec3, Mat3, Mat3A, Mat4, Quat, Vec3, Vec3A, Vec3Swizzles};
+use rune::Any;
 
 /// Euler rotation sequences.
 ///
@@ -23,58 +24,82 @@ use crate::{DMat3, DMat4, DQuat, DVec3, Mat3, Mat3A, Mat4, Quat, Vec3, Vec3A, Ve
 /// assert!(m_extrinsic.abs_diff_eq(n_extrinsic, 2e-6));
 /// ```
 ///
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Any, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EulerRot {
     /// Intrinsic three-axis rotation ZYX
+    #[rune(constructor)]
     ZYX,
     /// Intrinsic three-axis rotation ZXY
+    #[rune(constructor)]
     ZXY,
     /// Intrinsic three-axis rotation YXZ
+    #[rune(constructor)]
     YXZ,
     /// Intrinsic three-axis rotation YZX
+    #[rune(constructor)]
     YZX,
     /// Intrinsic three-axis rotation XYZ
+    #[rune(constructor)]
     XYZ,
     /// Intrinsic three-axis rotation XZY
+    #[rune(constructor)]
     XZY,
 
     /// Intrinsic two-axis rotation ZYZ
+    #[rune(constructor)]
     ZYZ,
     /// Intrinsic two-axis rotation ZXZ
+    #[rune(constructor)]
     ZXZ,
     /// Intrinsic two-axis rotation YXY
+    #[rune(constructor)]
     YXY,
     /// Intrinsic two-axis rotation YZY
+    #[rune(constructor)]
     YZY,
     /// Intrinsic two-axis rotation XYX
+    #[rune(constructor)]
     XYX,
     /// Intrinsic two-axis rotation XZX
+    #[rune(constructor)]
     XZX,
 
     /// Extrinsic three-axis rotation ZYX
+    #[rune(constructor)]
     ZYXEx,
     /// Extrinsic three-axis rotation ZXY
+    #[rune(constructor)]
     ZXYEx,
     /// Extrinsic three-axis rotation YXZ
+    #[rune(constructor)]
     YXZEx,
     /// Extrinsic three-axis rotation YZX
+    #[rune(constructor)]
     YZXEx,
     /// Extrinsic three-axis rotation XYZ
+    #[rune(constructor)]
     XYZEx,
     /// Extrinsic three-axis rotation XZY
+    #[rune(constructor)]
     XZYEx,
 
     /// Extrinsic two-axis rotation ZYZ
+    #[rune(constructor)]
     ZYZEx,
     /// Extrinsic two-axis rotation ZXZ
+    #[rune(constructor)]
     ZXZEx,
     /// Extrinsic two-axis rotation YXY
+    #[rune(constructor)]
     YXYEx,
     /// Extrinsic two-axis rotation YZY
+    #[rune(constructor)]
     YZYEx,
     /// Extrinsic two-axis rotation XYX
+    #[rune(constructor)]
     XYXEx,
     /// Extrinsic two-axis rotation XZX
+    #[rune(constructor)]
     XZXEx,
 }
 

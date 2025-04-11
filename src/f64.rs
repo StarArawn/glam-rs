@@ -99,3 +99,16 @@ mod test {
         const_assert_eq!(32, core::mem::size_of::<super::DVec4>());
     }
 }
+
+pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+    self::dvec2::rune_register_types(module)?;
+    self::dvec3::rune_register_types(module)?;
+    self::dvec4::rune_register_types(module)?;
+    self::dquat::rune_register_types(module)?;
+
+    self::dmat2::rune_register_types(module)?;
+    self::dmat3::rune_register_types(module)?;
+    self::dmat4::rune_register_types(module)?;
+
+    Ok(())
+}
