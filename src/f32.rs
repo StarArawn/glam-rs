@@ -197,5 +197,27 @@ pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::Contex
         self::neon::mat3a::rune_register_types(module)?;
         self::neon::mat4::rune_register_types(module)?;
     }
+
+    #[cfg(all(
+        target_feature = "sse2",
+        not(any(feature = "core-simd", feature = "scalar-math"))
+    ))]
+    {
+        self::sse2::quat::rune_register_types(module)?;
+        self::sse2::vec3a::rune_register_types(module)?;
+        self::sse2::mat2::rune_register_types(module)?;
+        self::sse2::mat3a::rune_register_types(module)?;
+        self::sse2::mat4::rune_register_types(module)?;
+    }
+
+    #[cfg(all(feature = "core-simd", not(feature = "scalar-math")))]
+    {
+        self::coresmid::quat::rune_register_types(module)?;
+        self::coresmid::vec3a::rune_register_types(module)?;
+        self::coresmid::mat2::rune_register_types(module)?;
+        self::coresmid::mat3a::rune_register_types(module)?;
+        self::coresmid::mat4::rune_register_types(module)?;
+    }
+
     Ok(())
 }
