@@ -102,7 +102,6 @@ use crate::{
     swizzles::*,
 };
 use core::fmt;
-use rune::Any;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
@@ -200,7 +199,8 @@ pub const fn {{ self_t | lower }}(
 ///
 /// This type is 16 byte aligned.
 {%- endif %}
-#[derive(Clone, Copy, Any)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "rune", derive(Any))]
 {%- if self_t == "Mat4" and is_scalar %}
 #[cfg_attr(
     any(
@@ -1073,7 +1073,7 @@ impl {{ self_t }} {
     /// Returns the transpose of `self`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn transpose(&self) -> Self {
         {% if self_t == "Mat2" and is_sse2 %}
             Self(unsafe { _mm_shuffle_ps(self.0, self.0, 0b11_01_10_00) })
@@ -1471,7 +1471,7 @@ impl {{ self_t }} {
     #[inline]
     {%- endif %}
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn inverse(&self) -> Self {
         {% if self_t == "Mat2" and is_sse2 %}
             unsafe {
@@ -1521,7 +1521,7 @@ impl {{ self_t }} {
                 glam_assert!(Mat2(tmp).is_finite());
                 //let dbca = simd_swizzle!(abcd, [3, 1, 2, 0]);
                 let dbca = vsetq_lane_f32(
-                    vgetq_lane_f32(abcd, 0), 
+                    vgetq_lane_f32(abcd, 0),
                     vsetq_lane_f32(vgetq_lane_f32(abcd, 3), abcd, 0),
                     3,
                 );
@@ -2010,7 +2010,7 @@ impl {{ self_t }} {
     /// Will panic if the 3rd row of `self` is not `(0, 0, 0, 1)` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn transform_point3(&self, rhs: {{ vec3_t }}) -> {{ vec3_t }} {
         glam_assert!(self.row(3).abs_diff_eq({{ vec4_t }}::W, 1e-6));
         let mut res = self.x_axis.mul(rhs.x);
@@ -2032,7 +2032,7 @@ impl {{ self_t }} {
     /// Will panic if the 3rd row of `self` is not `(0, 0, 0, 1)` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn transform_vector3(&self, rhs: {{ vec3_t }}) -> {{ vec3_t }} {
         glam_assert!(self.row(3).abs_diff_eq({{ vec4_t }}::W, 1e-6));
         let mut res = self.x_axis.mul(rhs.x);
@@ -2398,7 +2398,8 @@ impl {{ self_t }} {
     {% endif %}
 
     {% if self_t == "Mat4" %}
-    #[rune::function(path = Mat4::identity)]
+    #[cfg(feature = "rune")]
+    #[cfg_attr(feature = "rune", rune::function(path = Mat4::identity))]
     fn identity() -> Mat4 {
         Mat4::IDENTITY
     }
@@ -2689,147 +2690,149 @@ impl fmt::Display for {{ self_t }} {
     }
 }
 
-pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
-    module.ty::<{{ self_t }}>()?;
-    {% if dim == 4 %}
-    module.function_meta({{ self_t }}::transform_point3__meta)?;
-    module.function_meta({{ self_t }}::transform_vector3__meta)?;
-    {% endif %}
+#[cfg(feature = "rune")]
+pub mod rune {
+    pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+        module.ty::<{{ self_t }}>()?;
+        {% if dim == 4 %}
+        module.function_meta({{ self_t }}::transform_point3__meta)?;
+        module.function_meta({{ self_t }}::transform_vector3__meta)?;
+        {% endif %}
 
-    {% if self_t == "Mat4" %}
-    module.function_meta({{ self_t }}::transpose__meta)?;
-    module.function_meta({{ self_t }}::inverse__meta)?;
-    {% endif %}
+        {% if self_t == "Mat4" %}
+        module.function_meta({{ self_t }}::transpose__meta)?;
+        module.function_meta({{ self_t }}::inverse__meta)?;
+        {% endif %}
 
-    module.function_meta(rune_mul)?;
-    module.function_meta(rune_mul_assign)?;
+        module.function_meta(rune_mul)?;
+        module.function_meta(rune_mul_assign)?;
 
-    {% if self_t == "Mat4" %}
-    module.function_meta(Mat4::identity)?;
-    {% endif %}
+        {% if self_t == "Mat4" %}
+        module.function_meta(Mat4::identity)?;
+        {% endif %}
 
-    {% if dim == 4 %}
-    // TODO: Doesn't work. Fix somehow?
-    // module
-    //    .constant("IDENTITY", {{ self_t }}::IDENTITY)
-    //    .build_associated::<{{ self_t }}>()?;
-    {% endif %}
+        {% if dim == 4 %}
+        // TODO: Doesn't work. Fix somehow?
+        // module
+        //    .constant("IDENTITY", {{ self_t }}::IDENTITY)
+        //    .build_associated::<{{ self_t }}>()?;
+        {% endif %}
 
-    module.function_meta(debug)?;
+        module.function_meta(debug)?;
 
-    Ok(())
-}
-
-#[rune::function(instance, protocol = DEBUG_FMT)]
-fn debug(this: &{{ self_t }}, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
-    use rune::alloc::fmt::TryWrite;
-    rune::vm_write!(f, "{:?}", this)
-}
-
-use rune::ToValue;
-{% if dim == 4 %}
-use rune::FromValue;
-use rune::alloc::clone::TryClone;
-impl rune::runtime::ToConstValue for {{ self_t }} {
-    #[inline]
-    fn to_const_value(
-        self,
-    ) -> ::core::result::Result<rune::runtime::ConstValue, rune::runtime::RuntimeError> {
-        rune::runtime::ConstValue::for_struct(
-            <Self as rune::runtime::TypeHash>::HASH,
-            [
-                rune::runtime::ConstValue::from_value(self.x_axis.to_value()?)?,
-                rune::runtime::ConstValue::from_value(self.y_axis.to_value()?)?,
-                rune::runtime::ConstValue::from_value(self.z_axis.to_value()?)?,
-                rune::runtime::ConstValue::from_value(self.w_axis.to_value()?)?,
-            ],
-        )
+        Ok(())
     }
-    #[inline]
-    fn construct() -> ::core::option::Option<rune::__private::Arc<dyn rune::runtime::ConstConstruct>>
-    {
-        struct {{ self_t }}Construct;
 
-        impl rune::runtime::ConstConstruct for {{ self_t }}Construct {
-            #[inline]
-            fn const_construct(
-                &self,
-                values: &[rune::runtime::ConstValue],
-            ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
-            {
-                let [v0, v1, v2, v3] = values else {
-                    return ::core::result::Result::Err(
-                        rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
-                    );
-                };
-                let value = {{ self_t }} {
-                    x_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
-                        v0.try_clone()?,
-                    )?,
-                    y_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
-                        v1.try_clone()?,
-                    )?,
-                    z_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
-                        v2.try_clone()?,
-                    )?,
-                    w_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
-                        v3.try_clone()?,
-                    )?,
-                };
-                ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
-            }
-            #[inline]
-            fn runtime_construct(
-                &self,
-                values: &mut [rune::runtime::Value],
-            ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
-            {
-                let [v0, v1, v2, v3] = values else {
-                    return ::core::result::Result::Err(
-                        rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
-                    );
-                };
-                let value = {{ self_t }} {
-                    x_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
-                        rune::runtime::Value::take(v0),
-                    )?,
-                    y_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
-                        rune::runtime::Value::take(v1),
-                    )?,
-                    z_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
-                        rune::runtime::Value::take(v2),
-                    )?,
-                    w_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
-                        rune::runtime::Value::take(v3),
-                    )?,
-                };
-                ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
-            }
+    #[rune::function(instance, protocol = DEBUG_FMT)]
+    fn debug(this: &{{ self_t }}, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+        use rune::alloc::fmt::TryWrite;
+        rune::vm_write!(f, "{:?}", this)
+    }
+    use rune::ToValue;
+    {% if dim == 4 %}
+    use rune::FromValue;
+    use rune::alloc::clone::TryClone;
+    impl rune::runtime::ToConstValue for {{ self_t }} {
+        #[inline]
+        fn to_const_value(
+            self,
+        ) -> ::core::result::Result<rune::runtime::ConstValue, rune::runtime::RuntimeError> {
+            rune::runtime::ConstValue::for_struct(
+                <Self as rune::runtime::TypeHash>::HASH,
+                [
+                    rune::runtime::ConstValue::from_value(self.x_axis.to_value()?)?,
+                    rune::runtime::ConstValue::from_value(self.y_axis.to_value()?)?,
+                    rune::runtime::ConstValue::from_value(self.z_axis.to_value()?)?,
+                    rune::runtime::ConstValue::from_value(self.w_axis.to_value()?)?,
+                ],
+            )
         }
-        ::core::option::Option::Some(rune::__private::Arc::new({{ self_t }}Construct))
+        #[inline]
+        fn construct() -> ::core::option::Option<rune::__private::Arc<dyn rune::runtime::ConstConstruct>>
+        {
+            struct {{ self_t }}Construct;
+
+            impl rune::runtime::ConstConstruct for {{ self_t }}Construct {
+                #[inline]
+                fn const_construct(
+                    &self,
+                    values: &[rune::runtime::ConstValue],
+                ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
+                {
+                    let [v0, v1, v2, v3] = values else {
+                        return ::core::result::Result::Err(
+                            rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
+                        );
+                    };
+                    let value = {{ self_t }} {
+                        x_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
+                            v0.try_clone()?,
+                        )?,
+                        y_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
+                            v1.try_clone()?,
+                        )?,
+                        z_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
+                            v2.try_clone()?,
+                        )?,
+                        w_axis: <{{ col_t }} as rune::runtime::FromConstValue>::from_const_value(
+                            v3.try_clone()?,
+                        )?,
+                    };
+                    ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
+                }
+                #[inline]
+                fn runtime_construct(
+                    &self,
+                    values: &mut [rune::runtime::Value],
+                ) -> ::core::result::Result<rune::runtime::Value, rune::runtime::RuntimeError>
+                {
+                    let [v0, v1, v2, v3] = values else {
+                        return ::core::result::Result::Err(
+                            rune::runtime::RuntimeError::bad_argument_count(values.len(), 4usize),
+                        );
+                    };
+                    let value = {{ self_t }} {
+                        x_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
+                            rune::runtime::Value::take(v0),
+                        )?,
+                        y_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
+                            rune::runtime::Value::take(v1),
+                        )?,
+                        z_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
+                            rune::runtime::Value::take(v2),
+                        )?,
+                        w_axis: <{{ col_t }} as rune::runtime::FromValue>::from_value(
+                            rune::runtime::Value::take(v3),
+                        )?,
+                    };
+                    ::core::result::Result::Ok(rune::runtime::Value::new(value)?)
+                }
+            }
+            ::core::option::Option::Some(rune::__private::Arc::new({{ self_t }}Construct))
+        }
     }
-}
-{% endif %}
+    {% endif %}
 
-#[rune::function(instance, protocol = MUL)]
-fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
-    if let Ok(vec) = b.downcast::<{{ self_t }}>() {
-        a * vec
-    } else {
-        a
+    #[rune::function(instance, protocol = MUL)]
+    fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+        if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+            a * vec
+        } else {
+            a
+        }
     }
-}
 
-#[rune::function(instance, protocol = MUL_ASSIGN)]
-fn rune_mul_assign(a: &mut {{ self_t }}, b: rune::Value) {
-    *a = __rune_fn__rune_mul(*a, b);
-}
+    #[rune::function(instance, protocol = MUL_ASSIGN)]
+    fn rune_mul_assign(a: &mut {{ self_t }}, b: rune::Value) {
+        *a = __rune_fn__rune_mul(*a, b);
+    }
 
-impl rune::runtime::FromConstValue for {{ self_t }} {
-    fn from_const_value(
-        value: rune::runtime::ConstValue,
-    ) -> Result<Self, rune::runtime::RuntimeError> {
-        let value = value.to_value()?;
-        value.downcast::<{{ self_t }}>()
+    impl rune::runtime::FromConstValue for {{ self_t }} {
+        fn from_const_value(
+            value: rune::runtime::ConstValue,
+        ) -> Result<Self, rune::runtime::RuntimeError> {
+            let value = value.to_value()?;
+            value.downcast::<{{ self_t }}>()
+        }
     }
 }

@@ -4,6 +4,7 @@ use crate::{
     BVec3, BVec3A, I16Vec3, I64Vec3, I8Vec3, IVec2, IVec4, U16Vec3, U64Vec3, U8Vec3, UVec3,
 };
 
+#[cfg(feature = "rune")]
 use rune::Any;
 
 use core::fmt;
@@ -19,15 +20,16 @@ pub const fn ivec3(x: i32, y: i32, z: i32) -> IVec3 {
 
 /// A 3-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Any, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "rune", derive(Any))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct IVec3 {
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub x: i32,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub y: i32,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub z: i32,
 }
 
@@ -1954,3 +1956,6 @@ impl From<BVec3A> for IVec3 {
         )
     }
 }
+
+#[cfg(feature = "rune")]
+pub mod rune {}

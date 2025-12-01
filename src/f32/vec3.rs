@@ -2,10 +2,13 @@
 
 use crate::{f32::math, BVec3, BVec3A, Vec2, Vec4};
 
+#[cfg(feature = "rune")]
 use rune::Any;
 
+#[cfg(feature = "rune")]
 use rune::ToConstValue;
 
+#[cfg(feature = "rune")]
 use rune::ToValue;
 
 use core::fmt;
@@ -20,18 +23,19 @@ pub const fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
 }
 
 /// A 3-dimensional vector.
-#[derive(Any, ToConstValue, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "rune", derive(ToConstValue, Any))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct Vec3 {
-    #[rune(get, set, copy, meta)]
-    #[const_value(with = crate::f32_const_value)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
+    #[cfg_attr(feature = "rune", const_value(with = crate::f32_const_value))]
     pub x: f32,
-    #[rune(get, set, copy, meta)]
-    #[const_value(with = crate::f32_const_value)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
+    #[cfg_attr(feature = "rune", const_value(with = crate::f32_const_value))]
     pub y: f32,
-    #[rune(get, set, copy, meta)]
-    #[const_value(with = crate::f32_const_value)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
+    #[cfg_attr(feature = "rune", const_value(with = crate::f32_const_value))]
     pub z: f32,
 }
 
@@ -84,7 +88,7 @@ impl Vec3 {
     /// Creates a new vector.
     #[inline(always)]
     #[must_use]
-    #[rune::function(keep, path = Self::new)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::new))]
 
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
@@ -93,7 +97,7 @@ impl Vec3 {
     /// Creates a vector with all elements set to `v`.
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::splat)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::splat))]
 
     pub const fn splat(v: f32) -> Self {
         Self { x: v, y: v, z: v }
@@ -175,7 +179,7 @@ impl Vec3 {
     /// Creates a 4D vector from `self` and the given `w` value.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn extend(self, w: f32) -> Vec4 {
         Vec4::new(self.x, self.y, self.z, w)
     }
@@ -185,7 +189,7 @@ impl Vec3 {
     /// Truncation may also be performed by using [`self.xy()`][crate::swizzles::Vec3Swizzles::xy()].
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn truncate(self) -> Vec2 {
         use crate::swizzles::Vec3Swizzles;
         self.xy()
@@ -218,7 +222,7 @@ impl Vec3 {
     /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn dot(self, rhs: Self) -> f32 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
@@ -233,7 +237,7 @@ impl Vec3 {
     /// Computes the cross product of `self` and `rhs`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn cross(self, rhs: Self) -> Self {
         Self {
             x: self.y * rhs.z - rhs.y * self.z,
@@ -247,7 +251,7 @@ impl Vec3 {
     /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -261,7 +265,7 @@ impl Vec3 {
     /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -279,7 +283,7 @@ impl Vec3 {
     /// Will panic if `min` is greater than `max` when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
         self.max(min).min(max)
@@ -390,7 +394,7 @@ impl Vec3 {
     /// Returns a vector containing the absolute value of each element of `self`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn abs(self) -> Self {
         Self {
             x: math::abs(self.x),
@@ -406,7 +410,7 @@ impl Vec3 {
     /// - `NAN` if the number is `NAN`
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn signum(self) -> Self {
         Self {
             x: math::signum(self.x),
@@ -456,7 +460,7 @@ impl Vec3 {
     /// Returns `true` if any elements are `NaN`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn is_nan(self) -> bool {
         self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
     }
@@ -474,7 +478,7 @@ impl Vec3 {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn length(self) -> f32 {
         math::sqrt(self.dot(self))
     }
@@ -485,7 +489,7 @@ impl Vec3 {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn length_squared(self) -> f32 {
         self.dot(self)
     }
@@ -502,7 +506,7 @@ impl Vec3 {
     /// Computes the Euclidean distance between two points in space.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn distance(self, rhs: Self) -> f32 {
         (self - rhs).length()
     }
@@ -510,7 +514,7 @@ impl Vec3 {
     /// Compute the squared euclidean distance between two points in space.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn distance_squared(self, rhs: Self) -> f32 {
         (self - rhs).length_squared()
     }
@@ -550,7 +554,7 @@ impl Vec3 {
     /// Will panic if the resulting normalized vector is not finite when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn normalize(self) -> Self {
         #[allow(clippy::let_and_return)]
         let normalized = self.mul(self.length_recip());
@@ -693,7 +697,7 @@ impl Vec3 {
     /// element of `self`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn floor(self) -> Self {
         Self {
             x: math::floor(self.x),
@@ -706,7 +710,7 @@ impl Vec3 {
     /// each element of `self`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn ceil(self) -> Self {
         Self {
             x: math::ceil(self.x),
@@ -735,7 +739,7 @@ impl Vec3 {
     /// Note that this is fast but not precise for large numbers.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn fract(self) -> Self {
         self - self.trunc()
     }
@@ -790,7 +794,7 @@ impl Vec3 {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn lerp(self, rhs: Self, s: f32) -> Self {
         self * (1.0 - s) + rhs * s
     }
@@ -1957,150 +1961,154 @@ impl From<BVec3A> for Vec3 {
     }
 }
 
-pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
-    module.ty::<Vec3>()?;
-    module.function_meta(Vec3::new__meta)?;
-    module.function_meta(Vec3::splat__meta)?;
+#[cfg(feature = "rune")]
+pub mod rune {
 
-    module.function_meta(Vec3::extend__meta)?;
+    pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+        module.ty::<Vec3>()?;
+        module.function_meta(Vec3::new__meta)?;
+        module.function_meta(Vec3::splat__meta)?;
 
-    module.function_meta(Vec3::truncate__meta)?;
+        module.function_meta(Vec3::extend__meta)?;
 
-    module.function_meta(Vec3::dot__meta)?;
+        module.function_meta(Vec3::truncate__meta)?;
 
-    module
-        .constant("ZERO", Vec3::ZERO)
-        .build_associated::<Vec3>()?;
+        module.function_meta(Vec3::dot__meta)?;
 
-    module.constant("X", Vec3::X).build_associated::<Vec3>()?;
-    module.constant("Y", Vec3::Y).build_associated::<Vec3>()?;
-    module.constant("Z", Vec3::Z).build_associated::<Vec3>()?;
-    module
-        .constant("NEG_X", Vec3::NEG_X)
-        .build_associated::<Vec3>()?;
-    module
-        .constant("NEG_Y", Vec3::NEG_Y)
-        .build_associated::<Vec3>()?;
-    module
-        .constant("NEG_Z", Vec3::NEG_Z)
-        .build_associated::<Vec3>()?;
-    module.function_meta(Vec3::cross__meta)?;
+        module
+            .constant("ZERO", Vec3::ZERO)
+            .build_associated::<Vec3>()?;
 
-    module.function_meta(Vec3::min__meta)?;
-    module.function_meta(Vec3::max__meta)?;
-    module.function_meta(Vec3::clamp__meta)?;
-    module.function_meta(Vec3::abs__meta)?;
-    module.function_meta(Vec3::length__meta)?;
-    module.function_meta(Vec3::length_squared__meta)?;
-    module.function_meta(Vec3::distance__meta)?;
-    module.function_meta(Vec3::floor__meta)?;
-    module.function_meta(Vec3::ceil__meta)?;
-    module.function_meta(Vec3::fract__meta)?;
-    module.function_meta(Vec3::lerp__meta)?;
+        module.constant("X", Vec3::X).build_associated::<Vec3>()?;
+        module.constant("Y", Vec3::Y).build_associated::<Vec3>()?;
+        module.constant("Z", Vec3::Z).build_associated::<Vec3>()?;
+        module
+            .constant("NEG_X", Vec3::NEG_X)
+            .build_associated::<Vec3>()?;
+        module
+            .constant("NEG_Y", Vec3::NEG_Y)
+            .build_associated::<Vec3>()?;
+        module
+            .constant("NEG_Z", Vec3::NEG_Z)
+            .build_associated::<Vec3>()?;
+        module.function_meta(Vec3::cross__meta)?;
 
-    module.function_meta(rune_add)?;
-    module.function_meta(rune_sub)?;
-    module.function_meta(rune_div)?;
-    module.function_meta(rune_mul)?;
-    module.function_meta(rune_add_assign)?;
-    module.function_meta(rune_sub_assign)?;
-    module.function_meta(rune_div_assign)?;
-    module.function_meta(rune_mul_assign)?;
+        module.function_meta(Vec3::min__meta)?;
+        module.function_meta(Vec3::max__meta)?;
+        module.function_meta(Vec3::clamp__meta)?;
+        module.function_meta(Vec3::abs__meta)?;
+        module.function_meta(Vec3::length__meta)?;
+        module.function_meta(Vec3::length_squared__meta)?;
+        module.function_meta(Vec3::distance__meta)?;
+        module.function_meta(Vec3::floor__meta)?;
+        module.function_meta(Vec3::ceil__meta)?;
+        module.function_meta(Vec3::fract__meta)?;
+        module.function_meta(Vec3::lerp__meta)?;
 
-    module.function_meta(clone_vec)?;
-    module.implement_trait::<Vec3>(rune::item!(::std::clone::Clone))?;
+        module.function_meta(rune_add)?;
+        module.function_meta(rune_sub)?;
+        module.function_meta(rune_div)?;
+        module.function_meta(rune_mul)?;
+        module.function_meta(rune_add_assign)?;
+        module.function_meta(rune_sub_assign)?;
+        module.function_meta(rune_div_assign)?;
+        module.function_meta(rune_mul_assign)?;
 
-    module.function_meta(debug)?;
+        module.function_meta(clone_vec)?;
+        module.implement_trait::<Vec3>(rune::item!(::std::clone::Clone))?;
 
-    Ok(())
-}
+        module.function_meta(debug)?;
 
-#[rune::function(instance, protocol = CLONE)]
-fn clone_vec(this: &Vec3) -> rune::runtime::VmResult<Vec3> {
-    rune::runtime::VmResult::Ok(this.clone())
-}
-
-#[rune::function(instance, protocol = DEBUG_FMT)]
-fn debug(this: &Vec3, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
-    use rune::alloc::fmt::TryWrite;
-    rune::vm_write!(f, "{:?}", this)
-}
-
-impl rune::runtime::FromConstValue for Vec3 {
-    fn from_const_value(
-        value: rune::runtime::ConstValue,
-    ) -> Result<Self, rune::runtime::RuntimeError> {
-        let value = value.to_value()?;
-        value.downcast::<Vec3>()
+        Ok(())
     }
-}
 
-impl rune::alloc::prelude::TryClone for Vec3 {
-    fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
-        Ok(*self)
+    #[rune::function(instance, protocol = CLONE)]
+    fn clone_vec(this: &Vec3) -> rune::runtime::VmResult<Vec3> {
+        rune::runtime::VmResult::Ok(this.clone())
     }
-}
 
-#[rune::function(instance, protocol = ADD)]
-fn rune_add(a: Vec3, b: rune::Value) -> Vec3 {
-    if let Ok(f) = b.as_float() {
-        a + f as f32
-    } else if let Ok(vec) = b.downcast::<Vec3>() {
-        a + vec
-    } else {
-        a
+    #[rune::function(instance, protocol = DEBUG_FMT)]
+    fn debug(this: &Vec3, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+        use rune::alloc::fmt::TryWrite;
+        rune::vm_write!(f, "{:?}", this)
     }
-}
 
-#[rune::function(instance, protocol = SUB)]
-fn rune_sub(a: Vec3, b: rune::Value) -> Vec3 {
-    if let Ok(f) = b.as_float() {
-        a - f as f32
-    } else if let Ok(vec) = b.downcast::<Vec3>() {
-        a - vec
-    } else {
-        a
+    impl rune::runtime::FromConstValue for Vec3 {
+        fn from_const_value(
+            value: rune::runtime::ConstValue,
+        ) -> Result<Self, rune::runtime::RuntimeError> {
+            let value = value.to_value()?;
+            value.downcast::<Vec3>()
+        }
     }
-}
 
-#[rune::function(instance, protocol = MUL)]
-fn rune_mul(a: Vec3, b: rune::Value) -> Vec3 {
-    if let Ok(f) = b.as_float() {
-        a * f as f32
-    } else if let Ok(vec) = b.downcast::<Vec3>() {
-        a * vec
-    } else {
-        a
+    impl rune::alloc::prelude::TryClone for Vec3 {
+        fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
+            Ok(*self)
+        }
     }
-}
 
-#[rune::function(instance, protocol = DIV)]
-fn rune_div(a: Vec3, b: rune::Value) -> Vec3 {
-    if let Ok(f) = b.as_float() {
-        a / f as f32
-    } else if let Ok(vec) = b.downcast::<Vec3>() {
-        a / vec
-    } else {
-        a
+    #[rune::function(instance, protocol = ADD)]
+    fn rune_add(a: Vec3, b: rune::Value) -> Vec3 {
+        if let Ok(f) = b.as_float() {
+            a + f as f32
+        } else if let Ok(vec) = b.downcast::<Vec3>() {
+            a + vec
+        } else {
+            a
+        }
     }
-}
 
-#[rune::function(instance, protocol = ADD_ASSIGN)]
-fn rune_add_assign(a: &mut Vec3, b: rune::Value) {
-    *a = __rune_fn__rune_add(*a, b);
-}
+    #[rune::function(instance, protocol = SUB)]
+    fn rune_sub(a: Vec3, b: rune::Value) -> Vec3 {
+        if let Ok(f) = b.as_float() {
+            a - f as f32
+        } else if let Ok(vec) = b.downcast::<Vec3>() {
+            a - vec
+        } else {
+            a
+        }
+    }
 
-#[rune::function(instance, protocol = SUB_ASSIGN)]
-fn rune_sub_assign(a: &mut Vec3, b: rune::Value) {
-    *a = __rune_fn__rune_sub(*a, b);
-}
+    #[rune::function(instance, protocol = MUL)]
+    fn rune_mul(a: Vec3, b: rune::Value) -> Vec3 {
+        if let Ok(f) = b.as_float() {
+            a * f as f32
+        } else if let Ok(vec) = b.downcast::<Vec3>() {
+            a * vec
+        } else {
+            a
+        }
+    }
 
-#[rune::function(instance, protocol = MUL_ASSIGN)]
-fn rune_mul_assign(a: &mut Vec3, b: rune::Value) {
-    *a = __rune_fn__rune_mul(*a, b);
-}
+    #[rune::function(instance, protocol = DIV)]
+    fn rune_div(a: Vec3, b: rune::Value) -> Vec3 {
+        if let Ok(f) = b.as_float() {
+            a / f as f32
+        } else if let Ok(vec) = b.downcast::<Vec3>() {
+            a / vec
+        } else {
+            a
+        }
+    }
 
-#[rune::function(instance, protocol = DIV_ASSIGN)]
-fn rune_div_assign(a: &mut Vec3, b: rune::Value) {
-    *a = __rune_fn__rune_div(*a, b);
+    #[rune::function(instance, protocol = ADD_ASSIGN)]
+    fn rune_add_assign(a: &mut Vec3, b: rune::Value) {
+        *a = __rune_fn__rune_add(*a, b);
+    }
+
+    #[rune::function(instance, protocol = SUB_ASSIGN)]
+    fn rune_sub_assign(a: &mut Vec3, b: rune::Value) {
+        *a = __rune_fn__rune_sub(*a, b);
+    }
+
+    #[rune::function(instance, protocol = MUL_ASSIGN)]
+    fn rune_mul_assign(a: &mut Vec3, b: rune::Value) {
+        *a = __rune_fn__rune_mul(*a, b);
+    }
+
+    #[rune::function(instance, protocol = DIV_ASSIGN)]
+    fn rune_div_assign(a: &mut Vec3, b: rune::Value) {
+        *a = __rune_fn__rune_div(*a, b);
+    }
 }

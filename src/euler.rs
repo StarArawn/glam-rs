@@ -1,7 +1,6 @@
 // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.  Academic Press
 // Professional, Inc., USA, 222–229.
 use crate::{DMat3, DMat4, DQuat, DVec3, Mat3, Mat3A, Mat4, Quat, Vec3, Vec3A, Vec3Swizzles};
-use rune::Any;
 
 /// Euler rotation sequences.
 ///
@@ -24,82 +23,87 @@ use rune::Any;
 /// assert!(m_extrinsic.abs_diff_eq(n_extrinsic, 2e-6));
 /// ```
 ///
-#[derive(Any, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+
+#[cfg(feature = "rune")]
+use rune::Any;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "rune", derive(Any))]
 pub enum EulerRot {
     /// Intrinsic three-axis rotation ZYX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZYX,
     /// Intrinsic three-axis rotation ZXY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZXY,
     /// Intrinsic three-axis rotation YXZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YXZ,
     /// Intrinsic three-axis rotation YZX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YZX,
     /// Intrinsic three-axis rotation XYZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XYZ,
     /// Intrinsic three-axis rotation XZY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XZY,
 
     /// Intrinsic two-axis rotation ZYZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZYZ,
     /// Intrinsic two-axis rotation ZXZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZXZ,
     /// Intrinsic two-axis rotation YXY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YXY,
     /// Intrinsic two-axis rotation YZY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YZY,
     /// Intrinsic two-axis rotation XYX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XYX,
     /// Intrinsic two-axis rotation XZX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XZX,
 
     /// Extrinsic three-axis rotation ZYX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZYXEx,
     /// Extrinsic three-axis rotation ZXY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZXYEx,
     /// Extrinsic three-axis rotation YXZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YXZEx,
     /// Extrinsic three-axis rotation YZX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YZXEx,
     /// Extrinsic three-axis rotation XYZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XYZEx,
     /// Extrinsic three-axis rotation XZY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XZYEx,
 
     /// Extrinsic two-axis rotation ZYZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZYZEx,
     /// Extrinsic two-axis rotation ZXZ
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     ZXZEx,
     /// Extrinsic two-axis rotation YXY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YXYEx,
     /// Extrinsic two-axis rotation YZY
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     YZYEx,
     /// Extrinsic two-axis rotation XYX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XYXEx,
     /// Extrinsic two-axis rotation XZX
-    #[rune(constructor)]
+    #[cfg_attr(feature = "rune", rune(constructor))]
     XZXEx,
 }
 

@@ -63,6 +63,7 @@ use core::simd::*;
 use core::arch::aarch64::*;
 {% endif %}
 
+#[cfg(feature = "rune")]
 use rune::Any;
 use core::fmt;
 use core::iter::{Product, Sum};
@@ -102,7 +103,8 @@ pub const fn {{ self_t | lower }}(x: {{ scalar_t }}, y: {{ scalar_t }}, z: {{ sc
 ///
 /// This type is 16 byte aligned.
 {%- endif %}
-#[derive(Any, Clone, Copy)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "rune", derive(Any))]
 {%- if is_scalar %}
 {%- if scalar_t == "f32" %}
 #[cfg_attr(not(any(feature = "scalar-math", target_arch = "spirv")), repr(align(16)))]
@@ -143,7 +145,7 @@ impl {{ self_t }} {
     /// provide normalized input or to normalized the resulting quaternion.
     #[inline(always)]
     #[must_use]
-    #[rune::function(keep, path = Self::from_xyzw)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_xyzw))]
     pub const fn from_xyzw(x: {{ scalar_t }}, y: {{ scalar_t }}, z: {{ scalar_t }}, w: {{ scalar_t }}) -> Self {
         {% if is_scalar %}
             Self { x, y, z, w }
@@ -184,7 +186,7 @@ impl {{ self_t }} {
     /// provide normalized input or to normalized the resulting quaternion.
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::from_vec4)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_vec4))]
     pub const fn from_vec4(v: {{ vec4_t }}) -> Self {
         {% if is_scalar %}
             Self { x: v.x, y: v.y, z: v.z, w: v.w }
@@ -247,7 +249,7 @@ impl {{ self_t }} {
     /// Will panic if `axis` is not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::from_axis_angle)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_axis_angle))]
     pub fn from_axis_angle(axis: {{ vec3_t }}, angle: {{ scalar_t }}) -> Self {
         glam_assert!(axis.is_normalized());
         let (s, c) = math::sin_cos(angle * 0.5);
@@ -272,7 +274,7 @@ impl {{ self_t }} {
     /// Creates a quaternion from the `angle` (in radians) around the x axis.
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::from_rotation_x)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_rotation_x))]
     pub fn from_rotation_x(angle: {{ scalar_t }}) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(s, 0.0, 0.0, c)
@@ -281,7 +283,7 @@ impl {{ self_t }} {
     /// Creates a quaternion from the `angle` (in radians) around the y axis.
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::from_rotation_y)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_rotation_y))]
     pub fn from_rotation_y(angle: {{ scalar_t }}) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(0.0, s, 0.0, c)
@@ -290,7 +292,7 @@ impl {{ self_t }} {
     /// Creates a quaternion from the `angle` (in radians) around the z axis.
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::from_rotation_z)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_rotation_z))]
     pub fn from_rotation_z(angle: {{ scalar_t }}) -> Self {
         let (s, c) = math::sin_cos(angle * 0.5);
         Self::from_xyzw(0.0, 0.0, s, c)
@@ -299,7 +301,7 @@ impl {{ self_t }} {
     /// Creates a quaternion from the given Euler rotation sequence and the angles (in radians).
     #[inline]
     #[must_use]
-    #[rune::function(keep, path = Self::from_euler)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::from_euler))]
     pub fn from_euler(euler: EulerRot, a: {{ scalar_t }}, b: {{ scalar_t }}, c: {{ scalar_t }}) -> Self {
         Self::from_euler_angles(euler, a, b, c)
     }
@@ -552,7 +554,7 @@ impl {{ self_t }} {
     /// Returns the rotation angles for the given euler rotation sequence.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn to_euler(self, order: EulerRot) -> ({{ scalar_t }}, {{ scalar_t }}, {{ scalar_t }}) {
         self.to_euler_angles(order)
     }
@@ -575,7 +577,7 @@ impl {{ self_t }} {
     /// conjugate is also the inverse.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn conjugate(self) -> Self {
         {% if is_scalar %}
             Self { x: -self.x, y: -self.y, z: -self.z, w: self.w }
@@ -607,7 +609,7 @@ impl {{ self_t }} {
     /// Will panic if `self` is not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn inverse(self) -> Self {
         glam_assert!(self.is_normalized());
         self.conjugate()
@@ -617,7 +619,7 @@ impl {{ self_t }} {
     /// equal to the cosine of the angle between two quaternion rotations.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn dot(self, rhs: Self) -> {{ scalar_t }} {
         {{ vec4_t }}::from(self).dot({{ vec4_t }}::from(rhs))
     }
@@ -626,7 +628,7 @@ impl {{ self_t }} {
     #[doc(alias = "magnitude")]
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn length(self) -> {{ scalar_t }} {
         {{ vec4_t }}::from(self).length()
     }
@@ -638,7 +640,7 @@ impl {{ self_t }} {
     #[doc(alias = "magnitude2")]
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn length_squared(self) -> {{ scalar_t }} {
         {{ vec4_t }}::from(self).length_squared()
     }
@@ -661,7 +663,7 @@ impl {{ self_t }} {
     /// Will panic if `self` is zero length when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn normalize(self) -> Self {
         Self::from_vec4({{ vec4_t }}::from(self).normalize())
     }
@@ -783,7 +785,7 @@ impl {{ self_t }} {
     #[doc(alias = "mix")]
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn lerp(self, end: Self, s: {{ scalar_t }}) -> Self {
         glam_assert!(self.is_normalized());
         glam_assert!(end.is_normalized());
@@ -841,7 +843,7 @@ impl {{ self_t }} {
     /// Will panic if `self` or `end` are not normalized when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn slerp(self, mut end: Self, s: {{ scalar_t }}) -> Self {
         // http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
         glam_assert!(self.is_normalized());
@@ -1425,33 +1427,36 @@ impl DerefMut for {{ self_t }} {
 }
 {% endif %}
 
-pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
-    module.ty::<{{ self_t }}>()?;
-    module.function_meta({{ self_t }}::from_xyzw__meta)?;
-    module.function_meta({{ self_t }}::from_vec4__meta)?;
-    module.function_meta({{ self_t }}::from_axis_angle__meta)?;
-    module.function_meta({{ self_t }}::from_rotation_x__meta)?;
-    module.function_meta({{ self_t }}::from_rotation_y__meta)?;
-    module.function_meta({{ self_t }}::from_rotation_z__meta)?;
-    module.function_meta({{ self_t }}::from_euler__meta)?;
-    module.function_meta({{ self_t }}::to_euler__meta)?;
-    module.function_meta({{ self_t }}::conjugate__meta)?;
-    module.function_meta({{ self_t }}::inverse__meta)?;
-    module.function_meta({{ self_t }}::dot__meta)?;
-    module.function_meta({{ self_t }}::length__meta)?;
-    module.function_meta({{ self_t }}::normalize__meta)?;
-    module.function_meta({{ self_t }}::lerp__meta)?;
-    module.function_meta({{ self_t }}::slerp__meta)?;
-    module.function_meta(rune_mul)?;
+#[cfg(feature = "rune")]
+pub mod rune {
+    pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+        module.ty::<{{ self_t }}>()?;
+        module.function_meta({{ self_t }}::from_xyzw__meta)?;
+        module.function_meta({{ self_t }}::from_vec4__meta)?;
+        module.function_meta({{ self_t }}::from_axis_angle__meta)?;
+        module.function_meta({{ self_t }}::from_rotation_x__meta)?;
+        module.function_meta({{ self_t }}::from_rotation_y__meta)?;
+        module.function_meta({{ self_t }}::from_rotation_z__meta)?;
+        module.function_meta({{ self_t }}::from_euler__meta)?;
+        module.function_meta({{ self_t }}::to_euler__meta)?;
+        module.function_meta({{ self_t }}::conjugate__meta)?;
+        module.function_meta({{ self_t }}::inverse__meta)?;
+        module.function_meta({{ self_t }}::dot__meta)?;
+        module.function_meta({{ self_t }}::length__meta)?;
+        module.function_meta({{ self_t }}::normalize__meta)?;
+        module.function_meta({{ self_t }}::lerp__meta)?;
+        module.function_meta({{ self_t }}::slerp__meta)?;
+        module.function_meta(rune_mul)?;
 
-    Ok(())
-}
+        Ok(())
+    }
 
-#[rune::function(instance, protocol = MUL)]
-fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
-    if let Ok(vec) = b.downcast::<{{ self_t }}>() {
-        a * vec
-    } else {
-        a
+    #[rune::function(instance, protocol = MUL)]
+    fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+        if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+            a * vec
+        } else {
+            a
+        }
     }
 }

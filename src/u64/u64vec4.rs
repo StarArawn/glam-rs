@@ -4,6 +4,7 @@
 use crate::BVec4A;
 use crate::{BVec4, I16Vec4, I64Vec4, I8Vec4, IVec4, U16Vec4, U64Vec2, U64Vec3, U8Vec4, UVec4};
 
+#[cfg(feature = "rune")]
 use rune::Any;
 
 use core::fmt;
@@ -19,18 +20,19 @@ pub const fn u64vec4(x: u64, y: u64, z: u64, w: u64) -> U64Vec4 {
 
 /// A 4-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Any, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "rune", derive(Any))]
 #[cfg_attr(feature = "cuda", repr(align(16)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct U64Vec4 {
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub x: u64,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub y: u64,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub z: u64,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub w: u64,
 }
 
@@ -1953,3 +1955,6 @@ impl From<BVec4A> for U64Vec4 {
         )
     }
 }
+
+#[cfg(feature = "rune")]
+pub mod rune {}

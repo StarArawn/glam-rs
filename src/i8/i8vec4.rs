@@ -4,6 +4,7 @@
 use crate::BVec4A;
 use crate::{BVec4, I16Vec4, I64Vec4, I8Vec2, I8Vec3, IVec4, U16Vec4, U64Vec4, U8Vec4, UVec4};
 
+#[cfg(feature = "rune")]
 use rune::Any;
 
 use core::fmt;
@@ -19,18 +20,19 @@ pub const fn i8vec4(x: i8, y: i8, z: i8, w: i8) -> I8Vec4 {
 
 /// A 4-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Any, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "rune", derive(Any))]
 #[cfg_attr(feature = "cuda", repr(align(4)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct I8Vec4 {
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub x: i8,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub y: i8,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub z: i8,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub w: i8,
 }
 
@@ -2101,3 +2103,6 @@ impl From<BVec4A> for I8Vec4 {
         )
     }
 }
+
+#[cfg(feature = "rune")]
+pub mod rune {}

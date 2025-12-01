@@ -366,8 +366,7 @@ pub use euler::EulerRot;
 mod float;
 pub use float::FloatExt;
 
-mod rune;
-
+#[cfg(feature = "rune")]
 pub fn rune_module() -> Result<::rune::Module, ::rune::ContextError> {
     let mut module = ::rune::Module::new();
 
@@ -379,6 +378,43 @@ pub fn rune_module() -> Result<::rune::Module, ::rune::ContextError> {
     Ok(module)
 }
 
+pub fn rhai_module(engine: &mut rhai::Engine) {
+    // Register the type
+    engine.register_type::<Vec2>();
+
+    // Constructors
+    engine.register_fn("Vec2", Vec2::new);
+    engine.register_fn("splat", Vec2::splat);
+
+    // Methods
+    engine.register_fn("extend", Vec2::extend);
+    engine.register_fn("dot", Vec2::dot);
+    engine.register_fn("min", Vec2::min);
+    engine.register_fn("max", Vec2::max);
+    engine.register_fn("clamp", Vec2::clamp);
+    engine.register_fn("abs", Vec2::abs);
+    engine.register_fn("length", Vec2::length);
+    engine.register_fn("length_squared", Vec2::length_squared);
+    engine.register_fn("distance", Vec2::distance);
+    engine.register_fn("floor", Vec2::floor);
+    engine.register_fn("ceil", Vec2::ceil);
+    engine.register_fn("fract", Vec2::fract);
+    engine.register_fn("lerp", Vec2::lerp);
+
+    // Constant
+
+    let mut vec2_mod = rhai::Module::new();
+    vec2_mod.set_var("ZERO", Vec2::ZERO);
+    engine.register_static_module("Vec2", vec2_mod.into());
+
+    // Clone (if Clone is implemented)
+    engine.register_fn("clone", |v: &mut Vec2| v.clone());
+
+    // Debug
+    engine.register_fn("to_string", |v: &mut Vec2| format!("{:?}", v));
+}
+
+#[cfg(feature = "rune")]
 pub(crate) mod f32_const_value {
     use rune::runtime::{ConstValue, RuntimeError, Value};
 
@@ -398,6 +434,7 @@ pub(crate) mod f32_const_value {
     }
 }
 
+#[cfg(feature = "rune")]
 pub(crate) mod f64_const_value {
     use rune::runtime::{ConstValue, RuntimeError, Value};
 

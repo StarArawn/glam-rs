@@ -100,6 +100,7 @@ mod test {
     }
 }
 
+#[cfg(feature = "rune")]
 pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
     self::dvec2::rune_register_types(module)?;
     self::dvec3::rune_register_types(module)?;

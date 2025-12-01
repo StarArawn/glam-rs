@@ -2,6 +2,7 @@
 
 use crate::{BVec2, I16Vec3, I64Vec2, I8Vec2, IVec2, U16Vec2, U64Vec2, U8Vec2, UVec2};
 
+#[cfg(feature = "rune")]
 use rune::Any;
 
 use core::fmt;
@@ -17,14 +18,15 @@ pub const fn i16vec2(x: i16, y: i16) -> I16Vec2 {
 
 /// A 2-dimensional vector.
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
-#[derive(Any, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "rune", derive(Any))]
 #[cfg_attr(feature = "cuda", repr(align(4)))]
 #[cfg_attr(not(target_arch = "spirv"), repr(C))]
 #[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct I16Vec2 {
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub x: i16,
-    #[rune(get, set, copy, meta)]
+    #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     pub y: i16,
 }
 
@@ -1818,3 +1820,6 @@ impl From<BVec2> for I16Vec2 {
         Self::new(i16::from(v.x), i16::from(v.y))
     }
 }
+
+#[cfg(feature = "rune")]
+pub mod rune {}

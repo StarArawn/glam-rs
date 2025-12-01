@@ -215,11 +215,14 @@
     {% endif %}
 };
 
+#[cfg(feature = "rune")]
 use rune::Any;
 {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
+#[cfg(feature = "rune")]
 use rune::ToConstValue;
 {% endif %}
 {% if is_float %}
+#[cfg(feature = "rune")]
 use rune::ToValue;
 {% endif %}
 use core::fmt;
@@ -279,10 +282,6 @@ pub const fn {{ self_t | lower }}(
 #[cfg_attr(not(target_arch = "spirv"), derive(Hash))]
 {%- endif %}
 #[derive(
-    Any,
-    {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
-    ToConstValue,
-    {% endif %}
     Clone,
     Copy,
     {% if is_scalar %}
@@ -292,6 +291,12 @@ pub const fn {{ self_t | lower }}(
     {% endif %}
     {% endif %}
 )]
+#[cfg_attr(feature = "rune", derive(
+    {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
+    ToConstValue,
+    {% endif %}
+Any
+))]
 {%- if self_t == "Vec3A" and is_scalar %}
 #[cfg_attr(not(target_arch = "spirv"), repr(align(16)))]
 {%- elif self_t == "Vec4" and is_scalar %}
@@ -310,12 +315,12 @@ pub const fn {{ self_t | lower }}(
 pub struct {{ self_t }}
 {
     {% for c in components %}
-        #[rune(get, set, copy, meta)]
+        #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
         {% if scalar_t == "f32" %}
-        #[const_value(with = crate::f32_const_value)]
+        #[cfg_attr(feature = "rune", const_value(with = crate::f32_const_value))]
         {% endif %}
         {% if scalar_t == "f64" %}
-        #[const_value(with = crate::f64_const_value)]
+        #[cfg_attr(feature = "rune", const_value(with = crate::f64_const_value))]
         {% endif %}
         pub {{ c }}: {{ scalar_t }},
     {%- endfor %}
@@ -387,7 +392,7 @@ impl {{ self_t }} {
     #[inline(always)]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep, path = Self::new)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::new))]
     {% endif %}
     pub const fn new(
         {% for c in components %}
@@ -440,7 +445,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep, path = Self::splat)]
+    #[cfg_attr(feature = "rune", rune::function(keep, path = Self::splat))]
     {% endif %}
     pub const fn splat(v: {{ scalar_t }}) -> Self {
         {% if is_scalar %}
@@ -562,7 +567,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub const fn extend(self, z: {{ scalar_t }}) -> {{ vec3_t }} {
         {{ vec3_t }}::new(self.x, self.y, z)
@@ -599,7 +604,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn extend(self, w: {{ scalar_t }}) -> {{ vec4_t }} {
         {{ vec4_t }}::new(self.x, self.y, self.z, w)
@@ -611,7 +616,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn truncate(self) -> {{ vec2_t }} {
         use crate::swizzles::Vec3Swizzles;
@@ -628,7 +633,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn truncate(self) -> {{ vec3_t }} {
         use crate::swizzles::Vec4Swizzles;
@@ -651,7 +656,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn dot(self, rhs: Self) -> {{ scalar_t }} {
         {% if is_scalar %}
@@ -698,7 +703,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn cross(self, rhs: Self) -> Self {
         {% if is_scalar %}
@@ -771,7 +776,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn min(self, rhs: Self) -> Self {
         {% if is_scalar %}
@@ -799,7 +804,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn max(self, rhs: Self) -> Self {
         {% if is_scalar %}
@@ -831,7 +836,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn clamp(self, min: Self, max: Self) -> Self {
         glam_assert!(min.cmple(max).all(), "clamp: expected min <= max");
@@ -1246,7 +1251,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn abs(self) -> Self {
         {% if is_scalar %}
@@ -1286,7 +1291,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn signum(self) -> Self {
         {% if is_scalar %}
@@ -1461,7 +1466,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn is_nan(self) -> bool {
         {% if is_scalar %}
@@ -1501,7 +1506,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if is_float %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn length(self) -> {{ scalar_t }} {
         {% if is_scalar or is_neon %}
@@ -1530,7 +1535,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn length_squared(self) -> {{ scalar_t }} {
         self.dot(self)
@@ -1563,7 +1568,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn distance(self, rhs: Self) -> {{ scalar_t }} {
         (self - rhs).length()
@@ -1575,7 +1580,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn distance_squared(self, rhs: Self) -> {{ scalar_t }} {
         (self - rhs).length_squared()
@@ -1637,7 +1642,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn normalize(self) -> Self {
         {% if is_scalar or is_neon %}
@@ -1818,7 +1823,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if is_float %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn floor(self) -> Self {
         {% if is_scalar %}
@@ -1845,7 +1850,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn ceil(self) -> Self {
         {% if is_scalar %}
@@ -1900,7 +1905,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if is_float %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn fract(self) -> Self {
         self - self.trunc()
@@ -1973,7 +1978,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     {% if scalar_t == "f32" or scalar_t == "f64" %}
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     {%- endif %}
     pub fn lerp(self, rhs: Self, s: {{ scalar_t }}) -> Self {
         self * (1.0 - s) + rhs * s
@@ -1981,7 +1986,7 @@ impl {{ self_t }} {
 
     /// Moves towards `rhs` based on the value `d`.
     ///
-    /// When `d` is `0.0`, the result will be equal to `self`. When `d` is equal to 
+    /// When `d` is `0.0`, the result will be equal to `self`. When `d` is equal to
     /// `self.distance(rhs)`, the result will be equal to `rhs`. Will not go past `rhs`.
     #[inline]
     #[must_use]
@@ -1991,10 +1996,10 @@ impl {{ self_t }} {
         if len <= d || len <= 1e-4 {
             return rhs;
         }
-        *self + a / len * d 
+        *self + a / len * d
     }
 
-    /// Calculates the midpoint between `self` and `rhs`. 
+    /// Calculates the midpoint between `self` and `rhs`.
     ///
     /// The midpoint is the average of, or halfway point between, two vectors.
     /// `a.midpoint(b)` should yield the same result as `a.lerp(b, 0.5)`
@@ -2047,7 +2052,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     pub fn clamp_length_max(self, max: {{ scalar_t }}) -> Self {
-        glam_assert!(0.0 <= max); 
+        glam_assert!(0.0 <= max);
         let length_sq = self.length_squared();
         if length_sq > max * max {
             max * (self / math::sqrt(length_sq))
@@ -2064,7 +2069,7 @@ impl {{ self_t }} {
     #[inline]
     #[must_use]
     pub fn clamp_length_min(self, min: {{ scalar_t }}) -> Self {
-        glam_assert!(0.0 <= min); 
+        glam_assert!(0.0 <= min);
         let length_sq = self.length_squared();
         if length_sq < min * min {
             min * (self / math::sqrt(length_sq))
@@ -4338,164 +4343,166 @@ impl From<{{ bvec_from_type }}> for {{ self_t }} {
     }
 {% endif %}
 
-
-{% if is_float %}
-pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
-    module.ty::<{{ self_t }}>()?;
-    module.function_meta({{ self_t }}::new__meta)?;
-    module.function_meta({{ self_t }}::splat__meta)?;
-    {% if dim == 3 or dim == 2 %}
-    module.function_meta({{ self_t }}::extend__meta)?;
-    {% endif %}
-    {% if dim == 3 or dim == 4 %}
-    module.function_meta({{ self_t }}::truncate__meta)?;
-    {% endif %}
-    module.function_meta({{ self_t }}::dot__meta)?;
-    {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
-    module.constant("ZERO", {{ self_t }}::ZERO).build_associated::<{{ self_t }}>()?;
-    {% if dim == 3 %}
-    module.constant("X", {{ self_t }}::X).build_associated::<{{ self_t }}>()?;
-    module.constant("Y", {{ self_t }}::Y).build_associated::<{{ self_t }}>()?;
-    module.constant("Z", {{ self_t }}::Z).build_associated::<{{ self_t }}>()?;
-    module.constant("NEG_X", {{ self_t }}::NEG_X).build_associated::<{{ self_t }}>()?;
-    module.constant("NEG_Y", {{ self_t }}::NEG_Y).build_associated::<{{ self_t }}>()?;
-    module.constant("NEG_Z", {{ self_t }}::NEG_Z).build_associated::<{{ self_t }}>()?;
-    module.function_meta({{ self_t }}::cross__meta)?;
-    {% endif %}
-    {% endif %}
-    module.function_meta({{ self_t }}::min__meta)?;
-    module.function_meta({{ self_t }}::max__meta)?;
-    module.function_meta({{ self_t }}::clamp__meta)?;
-    module.function_meta({{ self_t }}::abs__meta)?;
-    module.function_meta({{ self_t }}::length__meta)?;
-    module.function_meta({{ self_t }}::length_squared__meta)?;
-    module.function_meta({{ self_t }}::distance__meta)?;
-    module.function_meta({{ self_t }}::floor__meta)?;
-    module.function_meta({{ self_t }}::ceil__meta)?;
-    module.function_meta({{ self_t }}::fract__meta)?;
-    module.function_meta({{ self_t }}::lerp__meta)?;
-
-    module.function_meta(rune_add)?;
-    module.function_meta(rune_sub)?;
-    module.function_meta(rune_div)?;
-    module.function_meta(rune_mul)?;
-    module.function_meta(rune_add_assign)?;
-    module.function_meta(rune_sub_assign)?;
-    module.function_meta(rune_div_assign)?;
-    module.function_meta(rune_mul_assign)?;
-
-    module.function_meta(clone_vec)?;
-    module.implement_trait::<{{ self_t }}>(rune::item!(::std::clone::Clone))?;
-
-    module.function_meta(debug)?;
-
-    Ok(())
-}
-
-#[rune::function(instance, protocol = CLONE)]
-fn clone_vec(this: &{{ self_t }}) -> rune::runtime::VmResult<{{ self_t }}> {
-    rune::runtime::VmResult::Ok(this.clone())
-}
-
-#[rune::function(instance, protocol = DEBUG_FMT)]
-fn debug(this: &{{ self_t }}, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
-    use rune::alloc::fmt::TryWrite;
-    rune::vm_write!(f, "{:?}", this)
-}
-
-impl rune::runtime::FromConstValue for {{ self_t }} {
-    fn from_const_value(
-        value: rune::runtime::ConstValue,
-    ) -> Result<Self, rune::runtime::RuntimeError> {
-        let value = value.to_value()?;
-        value.downcast::<{{ self_t }}>()
-    }
-}
-
-impl rune::alloc::prelude::TryClone for {{ self_t }} {
-    fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
-        Ok(*self)
-    }
-}
-
-#[rune::function(instance, protocol = ADD)]
-fn rune_add(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
-    if let Ok(f) = b.as_float() {
-        {% if scalar_t == "f32" %}
-        a + f as f32
-        {% else %}
-        a + f
+#[cfg(feature = "rune")]
+pub mod rune {
+    {% if is_float %}
+    pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+        module.ty::<{{ self_t }}>()?;
+        module.function_meta({{ self_t }}::new__meta)?;
+        module.function_meta({{ self_t }}::splat__meta)?;
+        {% if dim == 3 or dim == 2 %}
+        module.function_meta({{ self_t }}::extend__meta)?;
         {% endif %}
-    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
-        a + vec
-    } else {
-        a
-    }
-}
-
-#[rune::function(instance, protocol = SUB)]
-fn rune_sub(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
-    if let Ok(f) = b.as_float() {
-        {% if scalar_t == "f32" %}
-        a - f as f32
-        {% else %}
-        a - f
+        {% if dim == 3 or dim == 4 %}
+        module.function_meta({{ self_t }}::truncate__meta)?;
         {% endif %}
-    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
-        a - vec
-    } else {
-        a
-    }
-}
-
-#[rune::function(instance, protocol = MUL)]
-fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
-    if let Ok(f) = b.as_float() {
-        {% if scalar_t == "f32" %}
-        a * f as f32
-        {% else %}
-        a * f
+        module.function_meta({{ self_t }}::dot__meta)?;
+        {% if (scalar_t == "f32" or scalar_t == "f64") and is_scalar %}
+        module.constant("ZERO", {{ self_t }}::ZERO).build_associated::<{{ self_t }}>()?;
+        {% if dim == 3 %}
+        module.constant("X", {{ self_t }}::X).build_associated::<{{ self_t }}>()?;
+        module.constant("Y", {{ self_t }}::Y).build_associated::<{{ self_t }}>()?;
+        module.constant("Z", {{ self_t }}::Z).build_associated::<{{ self_t }}>()?;
+        module.constant("NEG_X", {{ self_t }}::NEG_X).build_associated::<{{ self_t }}>()?;
+        module.constant("NEG_Y", {{ self_t }}::NEG_Y).build_associated::<{{ self_t }}>()?;
+        module.constant("NEG_Z", {{ self_t }}::NEG_Z).build_associated::<{{ self_t }}>()?;
+        module.function_meta({{ self_t }}::cross__meta)?;
         {% endif %}
-    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
-        a * vec
-    } else {
-        a
-    }
-}
-
-#[rune::function(instance, protocol = DIV)]
-fn rune_div(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
-    if let Ok(f) = b.as_float() {
-        {% if scalar_t == "f32" %}
-        a / f as f32
-        {% else %}
-        a / f
         {% endif %}
-    } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
-        a / vec
-    } else {
-        a
+        module.function_meta({{ self_t }}::min__meta)?;
+        module.function_meta({{ self_t }}::max__meta)?;
+        module.function_meta({{ self_t }}::clamp__meta)?;
+        module.function_meta({{ self_t }}::abs__meta)?;
+        module.function_meta({{ self_t }}::length__meta)?;
+        module.function_meta({{ self_t }}::length_squared__meta)?;
+        module.function_meta({{ self_t }}::distance__meta)?;
+        module.function_meta({{ self_t }}::floor__meta)?;
+        module.function_meta({{ self_t }}::ceil__meta)?;
+        module.function_meta({{ self_t }}::fract__meta)?;
+        module.function_meta({{ self_t }}::lerp__meta)?;
+
+        module.function_meta(rune_add)?;
+        module.function_meta(rune_sub)?;
+        module.function_meta(rune_div)?;
+        module.function_meta(rune_mul)?;
+        module.function_meta(rune_add_assign)?;
+        module.function_meta(rune_sub_assign)?;
+        module.function_meta(rune_div_assign)?;
+        module.function_meta(rune_mul_assign)?;
+
+        module.function_meta(clone_vec)?;
+        module.implement_trait::<{{ self_t }}>(rune::item!(::std::clone::Clone))?;
+
+        module.function_meta(debug)?;
+
+        Ok(())
     }
-}
 
-#[rune::function(instance, protocol = ADD_ASSIGN)]
-fn rune_add_assign(a: &mut {{ self_t }}, b: rune::Value) {
-    *a = __rune_fn__rune_add(*a, b);
-}
+    #[rune::function(instance, protocol = CLONE)]
+    fn clone_vec(this: &{{ self_t }}) -> rune::runtime::VmResult<{{ self_t }}> {
+        rune::runtime::VmResult::Ok(this.clone())
+    }
 
-#[rune::function(instance, protocol = SUB_ASSIGN)]
-fn rune_sub_assign(a: &mut {{ self_t }}, b: rune::Value) {
-    *a = __rune_fn__rune_sub(*a, b);
-}
+    #[rune::function(instance, protocol = DEBUG_FMT)]
+    fn debug(this: &{{ self_t }}, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+        use rune::alloc::fmt::TryWrite;
+        rune::vm_write!(f, "{:?}", this)
+    }
 
-#[rune::function(instance, protocol = MUL_ASSIGN)]
-fn rune_mul_assign(a: &mut {{ self_t }}, b: rune::Value) {
-    *a = __rune_fn__rune_mul(*a, b);
-}
+    impl rune::runtime::FromConstValue for {{ self_t }} {
+        fn from_const_value(
+            value: rune::runtime::ConstValue,
+        ) -> Result<Self, rune::runtime::RuntimeError> {
+            let value = value.to_value()?;
+            value.downcast::<{{ self_t }}>()
+        }
+    }
 
-#[rune::function(instance, protocol = DIV_ASSIGN)]
-fn rune_div_assign(a: &mut {{ self_t }}, b: rune::Value) {
-    *a = __rune_fn__rune_div(*a, b);
-}
+    impl rune::alloc::prelude::TryClone for {{ self_t }} {
+        fn try_clone(&self) -> Result<Self, rune::alloc::Error> {
+            Ok(*self)
+        }
+    }
 
-{% endif %}
+    #[rune::function(instance, protocol = ADD)]
+    fn rune_add(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+        if let Ok(f) = b.as_float() {
+            {% if scalar_t == "f32" %}
+            a + f as f32
+            {% else %}
+            a + f
+            {% endif %}
+        } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+            a + vec
+        } else {
+            a
+        }
+    }
+
+    #[rune::function(instance, protocol = SUB)]
+    fn rune_sub(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+        if let Ok(f) = b.as_float() {
+            {% if scalar_t == "f32" %}
+            a - f as f32
+            {% else %}
+            a - f
+            {% endif %}
+        } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+            a - vec
+        } else {
+            a
+        }
+    }
+
+    #[rune::function(instance, protocol = MUL)]
+    fn rune_mul(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+        if let Ok(f) = b.as_float() {
+            {% if scalar_t == "f32" %}
+            a * f as f32
+            {% else %}
+            a * f
+            {% endif %}
+        } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+            a * vec
+        } else {
+            a
+        }
+    }
+
+    #[rune::function(instance, protocol = DIV)]
+    fn rune_div(a: {{ self_t }}, b: rune::Value) -> {{ self_t }} {
+        if let Ok(f) = b.as_float() {
+            {% if scalar_t == "f32" %}
+            a / f as f32
+            {% else %}
+            a / f
+            {% endif %}
+        } else if let Ok(vec) = b.downcast::<{{ self_t }}>() {
+            a / vec
+        } else {
+            a
+        }
+    }
+
+    #[rune::function(instance, protocol = ADD_ASSIGN)]
+    fn rune_add_assign(a: &mut {{ self_t }}, b: rune::Value) {
+        *a = __rune_fn__rune_add(*a, b);
+    }
+
+    #[rune::function(instance, protocol = SUB_ASSIGN)]
+    fn rune_sub_assign(a: &mut {{ self_t }}, b: rune::Value) {
+        *a = __rune_fn__rune_sub(*a, b);
+    }
+
+    #[rune::function(instance, protocol = MUL_ASSIGN)]
+    fn rune_mul_assign(a: &mut {{ self_t }}, b: rune::Value) {
+        *a = __rune_fn__rune_mul(*a, b);
+    }
+
+    #[rune::function(instance, protocol = DIV_ASSIGN)]
+    fn rune_div_assign(a: &mut {{ self_t }}, b: rune::Value) {
+        *a = __rune_fn__rune_div(*a, b);
+    }
+
+    {% endif %}
+}

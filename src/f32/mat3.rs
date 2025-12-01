@@ -9,7 +9,6 @@ use crate::{
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use rune::Any;
 
 /// Creates a 3x3 matrix from three column vectors.
 #[inline(always)]
@@ -42,7 +41,8 @@ pub const fn mat3(x_axis: Vec3, y_axis: Vec3, z_axis: Vec3) -> Mat3 {
 /// 2D inputs as 3D vectors with an implicit `z` value of `1` for points and `0` for
 /// vectors respectively. These methods assume that `Self` contains a valid affine
 /// transform.
-#[derive(Clone, Copy, Any)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "rune", derive(Any))]
 #[repr(C)]
 pub struct Mat3 {
     pub x_axis: Vec3,
@@ -483,7 +483,7 @@ impl Mat3 {
     /// Returns the transpose of `self`.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn transpose(&self) -> Self {
         Self {
             x_axis: Vec3::new(self.x_axis.x, self.y_axis.x, self.z_axis.x),
@@ -508,7 +508,7 @@ impl Mat3 {
     /// Will panic if the determinant of `self` is zero when `glam_assert` is enabled.
     #[inline]
     #[must_use]
-    #[rune::function(keep)]
+    #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn inverse(&self) -> Self {
         let tmp0 = self.y_axis.cross(self.z_axis);
         let tmp1 = self.z_axis.cross(self.x_axis);
@@ -874,44 +874,46 @@ impl fmt::Display for Mat3 {
     }
 }
 
-pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
-    module.ty::<Mat3>()?;
+#[cfg(feature = "rune")]
+pub mod rune {
+    pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
+        module.ty::<Mat3>()?;
 
-    module.function_meta(rune_mul)?;
-    module.function_meta(rune_mul_assign)?;
+        module.function_meta(rune_mul)?;
+        module.function_meta(rune_mul_assign)?;
 
-    module.function_meta(debug)?;
+        module.function_meta(debug)?;
 
-    Ok(())
-}
-
-#[rune::function(instance, protocol = DEBUG_FMT)]
-fn debug(this: &Mat3, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
-    use rune::alloc::fmt::TryWrite;
-    rune::vm_write!(f, "{:?}", this)
-}
-
-use rune::ToValue;
-
-#[rune::function(instance, protocol = MUL)]
-fn rune_mul(a: Mat3, b: rune::Value) -> Mat3 {
-    if let Ok(vec) = b.downcast::<Mat3>() {
-        a * vec
-    } else {
-        a
+        Ok(())
     }
-}
 
-#[rune::function(instance, protocol = MUL_ASSIGN)]
-fn rune_mul_assign(a: &mut Mat3, b: rune::Value) {
-    *a = __rune_fn__rune_mul(*a, b);
-}
+    #[rune::function(instance, protocol = DEBUG_FMT)]
+    fn debug(this: &Mat3, f: &mut rune::runtime::Formatter) -> rune::runtime::VmResult<()> {
+        use rune::alloc::fmt::TryWrite;
+        rune::vm_write!(f, "{:?}", this)
+    }
+    use rune::ToValue;
 
-impl rune::runtime::FromConstValue for Mat3 {
-    fn from_const_value(
-        value: rune::runtime::ConstValue,
-    ) -> Result<Self, rune::runtime::RuntimeError> {
-        let value = value.to_value()?;
-        value.downcast::<Mat3>()
+    #[rune::function(instance, protocol = MUL)]
+    fn rune_mul(a: Mat3, b: rune::Value) -> Mat3 {
+        if let Ok(vec) = b.downcast::<Mat3>() {
+            a * vec
+        } else {
+            a
+        }
+    }
+
+    #[rune::function(instance, protocol = MUL_ASSIGN)]
+    fn rune_mul_assign(a: &mut Mat3, b: rune::Value) {
+        *a = __rune_fn__rune_mul(*a, b);
+    }
+
+    impl rune::runtime::FromConstValue for Mat3 {
+        fn from_const_value(
+            value: rune::runtime::ConstValue,
+        ) -> Result<Self, rune::runtime::RuntimeError> {
+            let value = value.to_value()?;
+            value.downcast::<Mat3>()
+        }
     }
 }
