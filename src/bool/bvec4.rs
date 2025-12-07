@@ -13,6 +13,7 @@ pub const fn bvec4(x: bool, y: bool, z: bool, w: bool) -> BVec4 {
 /// A 4-dimensional `bool` vector mask.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(C, align(1))]
+#[cfg_attr(target_arch = "spirv", rust_gpu::vector::v1)]
 pub struct BVec4 {
     pub x: bool,
     pub y: bool,
@@ -57,7 +58,7 @@ impl BVec4 {
     #[inline]
     #[must_use]
     pub fn bitmask(self) -> u32 {
-        (self.x as u32) | (self.y as u32) << 1 | (self.z as u32) << 2 | (self.w as u32) << 3
+        (self.x as u32) | ((self.y as u32) << 1) | ((self.z as u32) << 2) | ((self.w as u32) << 3)
     }
 
     /// Returns true if any of the elements are true, false otherwise.
@@ -141,10 +142,41 @@ impl BitAnd for BVec4 {
     }
 }
 
+impl BitAnd<&Self> for BVec4 {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, rhs: &Self) -> Self {
+        self.bitand(*rhs)
+    }
+}
+
+impl BitAnd<&BVec4> for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn bitand(self, rhs: &BVec4) -> BVec4 {
+        (*self).bitand(*rhs)
+    }
+}
+
+impl BitAnd<BVec4> for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn bitand(self, rhs: BVec4) -> BVec4 {
+        (*self).bitand(rhs)
+    }
+}
+
 impl BitAndAssign for BVec4 {
     #[inline]
     fn bitand_assign(&mut self, rhs: Self) {
         *self = self.bitand(rhs);
+    }
+}
+
+impl BitAndAssign<&Self> for BVec4 {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: &Self) {
+        self.bitand_assign(*rhs);
     }
 }
 
@@ -161,10 +193,41 @@ impl BitOr for BVec4 {
     }
 }
 
+impl BitOr<&Self> for BVec4 {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, rhs: &Self) -> Self {
+        self.bitor(*rhs)
+    }
+}
+
+impl BitOr<&BVec4> for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn bitor(self, rhs: &BVec4) -> BVec4 {
+        (*self).bitor(*rhs)
+    }
+}
+
+impl BitOr<BVec4> for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn bitor(self, rhs: BVec4) -> BVec4 {
+        (*self).bitor(rhs)
+    }
+}
+
 impl BitOrAssign for BVec4 {
     #[inline]
     fn bitor_assign(&mut self, rhs: Self) {
         *self = self.bitor(rhs);
+    }
+}
+
+impl BitOrAssign<&Self> for BVec4 {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: &Self) {
+        self.bitor_assign(*rhs);
     }
 }
 
@@ -181,10 +244,41 @@ impl BitXor for BVec4 {
     }
 }
 
+impl BitXor<&Self> for BVec4 {
+    type Output = Self;
+    #[inline]
+    fn bitxor(self, rhs: &Self) -> Self {
+        self.bitxor(*rhs)
+    }
+}
+
+impl BitXor<&BVec4> for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn bitxor(self, rhs: &BVec4) -> BVec4 {
+        (*self).bitxor(*rhs)
+    }
+}
+
+impl BitXor<BVec4> for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn bitxor(self, rhs: BVec4) -> BVec4 {
+        (*self).bitxor(rhs)
+    }
+}
+
 impl BitXorAssign for BVec4 {
     #[inline]
     fn bitxor_assign(&mut self, rhs: Self) {
         *self = self.bitxor(rhs);
+    }
+}
+
+impl BitXorAssign<&Self> for BVec4 {
+    #[inline]
+    fn bitxor_assign(&mut self, rhs: &Self) {
+        self.bitxor_assign(*rhs);
     }
 }
 
@@ -198,6 +292,14 @@ impl Not for BVec4 {
             z: !self.z,
             w: !self.w,
         }
+    }
+}
+
+impl Not for &BVec4 {
+    type Output = BVec4;
+    #[inline]
+    fn not(self) -> BVec4 {
+        (*self).not()
     }
 }
 

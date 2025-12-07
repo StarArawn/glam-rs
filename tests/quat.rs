@@ -107,6 +107,13 @@ macro_rules! impl_quat_tests {
             let yx1 = $quat::from_euler(EulerRot::YXZ, yaw, pitch, zero);
             assert_approx_eq!(yx0, yx1);
 
+            let yx0 = &y0 * x0;
+            assert_approx_eq!(yx0, yx1);
+            let yx0 = y0 * &x0;
+            assert_approx_eq!(yx0, yx1);
+            let yx0 = &y0 * &x0;
+            assert_approx_eq!(yx0, yx1);
+
             let yxz0 = y0 * x0 * z0;
             assert!(yxz0.is_normalized());
             let yxz1 = $quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
@@ -132,6 +139,10 @@ macro_rules! impl_quat_tests {
 
             let mut x0 = $quat::from_rotation_x(pitch);
             x0 *= x0;
+            assert_approx_eq!(x0, $quat::from_rotation_x(pitch * 2.0));
+
+            let mut x0 = $quat::from_rotation_x(pitch);
+            x0 *= &x0.clone();
             assert_approx_eq!(x0, $quat::from_rotation_x(pitch * 2.0));
 
             should_glam_assert!({ ($quat::IDENTITY * 2.0).inverse() });
@@ -162,6 +173,30 @@ macro_rules! impl_quat_tests {
                     assert!(($quat::from_scaled_axis(v).to_scaled_axis() - v).length() < 1e-6,);
                 }
             }
+        });
+
+        glam_test!(test_quat_look_at, {
+            let eye = $vec3::new(0.0, 0.0, -5.0);
+            let center = $vec3::new(0.0, 0.0, 0.0);
+            let up = $vec3::new(1.0, 0.0, 0.0);
+
+            let point = $vec3::new(1.0, 0.0, 0.0);
+
+            let lh = $quat::look_at_lh(eye, center, up);
+            let rh = $quat::look_at_rh(eye, center, up);
+            assert_approx_eq!(lh * point, $vec3::new(0.0, 1.0, 0.0));
+            assert_approx_eq!(rh * point, $vec3::new(0.0, 1.0, 0.0));
+
+            let dir = (center - eye).normalize();
+            let lh = $quat::look_to_lh(dir, up);
+            let rh = $quat::look_to_rh(dir, up);
+            assert_approx_eq!(lh * point, $vec3::new(0.0, 1.0, 0.0));
+            assert_approx_eq!(rh * point, $vec3::new(0.0, 1.0, 0.0));
+
+            should_glam_assert!({ $quat::look_to_lh($vec3::ONE, $vec3::ZERO) });
+            should_glam_assert!({ $quat::look_to_lh($vec3::ZERO, $vec3::ONE) });
+            should_glam_assert!({ $quat::look_to_rh($vec3::ONE, $vec3::ZERO) });
+            should_glam_assert!({ $quat::look_to_rh($vec3::ZERO, $vec3::ONE) });
         });
 
         glam_test!(test_mul_vec3, {
@@ -223,6 +258,10 @@ macro_rules! impl_quat_tests {
             assert_approx_eq!($vec3::Z, mrzx.mul_vec3($vec3::X));
             assert_approx_eq!(-$vec3::X, mrzx * $vec3::Y);
             assert_approx_eq!(-$vec3::X, mrzx.mul_vec3($vec3::Y));
+
+            assert_approx_eq!(-$vec3::X, &mrzx * $vec3::Y);
+            assert_approx_eq!(-$vec3::X, mrzx * &$vec3::Y);
+            assert_approx_eq!(-$vec3::X, &mrzx * &$vec3::Y);
 
             should_glam_assert!({ ($quat::IDENTITY * 0.5).mul_vec3($vec3::X) });
             should_glam_assert!({ ($quat::IDENTITY * 0.5) * $vec3::X });
@@ -356,6 +395,11 @@ macro_rules! impl_quat_tests {
             );
             assert_approx_eq!(q2, q0.rotate_towards(q1, -FRAC_PI_2), eps);
             assert_approx_eq!(q2, q0.rotate_towards(q1, -FRAC_PI_2 * 1.5), eps);
+
+            // Small angles
+            let q0 = $quat::from_euler(EulerRot::YXZ, 0.0, 0.0, 0.0);
+            let q1 = $quat::from_euler(EulerRot::YXZ, 1e-4, 0.0, 0.0);
+            assert_eq!(q1, q0.rotate_towards(q1, FRAC_PI_2))
         });
 
         glam_test!(test_fmt, {
@@ -416,23 +460,71 @@ macro_rules! impl_quat_tests {
         glam_test!(test_addition, {
             let a = $quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
             let b = $quat::from_xyzw(5.0, 6.0, 7.0, -9.0);
-            assert_eq!(a + b, $quat::from_xyzw(6.0, 8.0, 10.0, -5.0));
+            let result = $quat::from_xyzw(6.0, 8.0, 10.0, -5.0);
+            assert_eq!(a + b, result);
+            assert_eq!(&a + b, result);
+            assert_eq!(a + &b, result);
+            assert_eq!(&a + &b, result);
+
+            let mut c = a;
+            c += b;
+            assert_eq!(c, result);
+
+            let mut c = a;
+            c += &b;
+            assert_eq!(c, result);
         });
 
         glam_test!(test_subtraction, {
             let a = $quat::from_xyzw(6.0, 8.0, 10.0, -5.0);
             let b = $quat::from_xyzw(5.0, 6.0, 7.0, -9.0);
-            assert_eq!(a - b, $quat::from_xyzw(1.0, 2.0, 3.0, 4.0));
+            let result = $quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
+            assert_eq!(a - b, result);
+            assert_eq!(&a - b, result);
+            assert_eq!(a - &b, result);
+            assert_eq!(&a - &b, result);
+
+            let mut c = a;
+            c -= b;
+            assert_eq!(c, result);
+
+            let mut c = a;
+            c -= &b;
+            assert_eq!(c, result);
         });
 
         glam_test!(test_scalar_multiplication, {
             let a = $quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
-            assert_eq!(a * 2.0, $quat::from_xyzw(2.0, 4.0, 6.0, 8.0));
+            let result = $quat::from_xyzw(2.0, 4.0, 6.0, 8.0);
+            assert_eq!(a * 2.0, result);
+            assert_eq!(&a * 2.0, result);
+            assert_eq!(a * &2.0, result);
+            assert_eq!(&a * &2.0, result);
+
+            let mut b = a;
+            b *= 2.0;
+            assert_eq!(b, result);
+
+            let mut b = a;
+            b *= &2.0;
+            assert_eq!(b, result);
         });
 
         glam_test!(test_scalar_division, {
             let a = $quat::from_xyzw(2.0, 4.0, 6.0, 8.0);
-            assert_eq!(a / 2.0, $quat::from_xyzw(1.0, 2.0, 3.0, 4.0));
+            let result = $quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
+            assert_eq!(a / 2.0, result);
+            assert_eq!(&a / 2.0, result);
+            assert_eq!(a / &2.0, result);
+            assert_eq!(&a / &2.0, result);
+
+            let mut b = a;
+            b /= 2.0;
+            assert_eq!(b, result);
+
+            let mut b = a;
+            b /= &2.0;
+            assert_eq!(b, result);
         });
 
         glam_test!(test_sum, {
@@ -576,6 +668,38 @@ macro_rules! impl_quat_tests {
                 assert!(axis.is_normalized());
                 assert_approx_eq!(axis, axis2);
                 assert_approx_eq!(angle, angle2);
+            }
+        });
+
+        glam_test!(test_add_assign, {
+            {
+                // Normalization not needed for this test.
+                let q = $quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
+                let p = $quat::from_xyzw(5.0, 6.0, 7.0, 8.0);
+
+                let mut pq = p;
+                pq += q;
+                assert_eq!(p + q, pq);
+
+                let mut pq = p;
+                pq += &q;
+                assert_eq!(p + q, pq);
+            }
+        });
+
+        glam_test!(test_sub_assign, {
+            {
+                // Normalization not needed for this test.
+                let q = $quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
+                let p = $quat::from_xyzw(5.0, 6.0, 7.0, 8.0);
+
+                let mut pq = p;
+                pq -= q;
+                assert_eq!(p - q, pq);
+
+                let mut pq = p;
+                pq -= &q;
+                assert_eq!(p - q, pq);
             }
         });
     };

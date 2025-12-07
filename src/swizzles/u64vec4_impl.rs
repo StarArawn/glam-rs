@@ -8,7 +8,6 @@ impl Vec4Swizzles for U64Vec4 {
     type Vec3 = U64Vec3;
 
     #[inline]
-    #[must_use]
     fn xx(self) -> U64Vec2 {
         U64Vec2 {
             x: self.x,
@@ -17,7 +16,6 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
     fn xy(self) -> U64Vec2 {
         U64Vec2 {
             x: self.x,
@@ -26,7 +24,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_xy(self, rhs: U64Vec2) -> Self {
+        Self::new(rhs.x, rhs.y, self.z, self.w)
+    }
+
+    #[inline]
     fn xz(self) -> U64Vec2 {
         U64Vec2 {
             x: self.x,
@@ -35,7 +37,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_xz(self, rhs: U64Vec2) -> Self {
+        Self::new(rhs.x, self.y, rhs.y, self.w)
+    }
+
+    #[inline]
     fn xw(self) -> U64Vec2 {
         U64Vec2 {
             x: self.x,
@@ -44,7 +50,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_xw(self, rhs: U64Vec2) -> Self {
+        Self::new(rhs.x, self.y, self.z, rhs.y)
+    }
+
+    #[inline]
     fn yx(self) -> U64Vec2 {
         U64Vec2 {
             x: self.y,
@@ -53,7 +63,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_yx(self, rhs: U64Vec2) -> Self {
+        Self::new(rhs.y, rhs.x, self.z, self.w)
+    }
+
+    #[inline]
     fn yy(self) -> U64Vec2 {
         U64Vec2 {
             x: self.y,
@@ -62,7 +76,6 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
     fn yz(self) -> U64Vec2 {
         U64Vec2 {
             x: self.y,
@@ -71,7 +84,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_yz(self, rhs: U64Vec2) -> Self {
+        Self::new(self.x, rhs.x, rhs.y, self.w)
+    }
+
+    #[inline]
     fn yw(self) -> U64Vec2 {
         U64Vec2 {
             x: self.y,
@@ -80,7 +97,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_yw(self, rhs: U64Vec2) -> Self {
+        Self::new(self.x, rhs.x, self.z, rhs.y)
+    }
+
+    #[inline]
     fn zx(self) -> U64Vec2 {
         U64Vec2 {
             x: self.z,
@@ -89,7 +110,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_zx(self, rhs: U64Vec2) -> Self {
+        Self::new(rhs.y, self.y, rhs.x, self.w)
+    }
+
+    #[inline]
     fn zy(self) -> U64Vec2 {
         U64Vec2 {
             x: self.z,
@@ -98,7 +123,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_zy(self, rhs: U64Vec2) -> Self {
+        Self::new(self.x, rhs.y, rhs.x, self.w)
+    }
+
+    #[inline]
     fn zz(self) -> U64Vec2 {
         U64Vec2 {
             x: self.z,
@@ -107,7 +136,6 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
     fn zw(self) -> U64Vec2 {
         U64Vec2 {
             x: self.z,
@@ -116,7 +144,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_zw(self, rhs: U64Vec2) -> Self {
+        Self::new(self.x, self.y, rhs.x, rhs.y)
+    }
+
+    #[inline]
     fn wx(self) -> U64Vec2 {
         U64Vec2 {
             x: self.w,
@@ -125,7 +157,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_wx(self, rhs: U64Vec2) -> Self {
+        Self::new(rhs.y, self.y, self.z, rhs.x)
+    }
+
+    #[inline]
     fn wy(self) -> U64Vec2 {
         U64Vec2 {
             x: self.w,
@@ -134,7 +170,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_wy(self, rhs: U64Vec2) -> Self {
+        Self::new(self.x, rhs.y, self.z, rhs.x)
+    }
+
+    #[inline]
     fn wz(self) -> U64Vec2 {
         U64Vec2 {
             x: self.w,
@@ -143,7 +183,11 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
+    fn with_wz(self, rhs: U64Vec2) -> Self {
+        Self::new(self.x, self.y, rhs.y, rhs.x)
+    }
+
+    #[inline]
     fn ww(self) -> U64Vec2 {
         U64Vec2 {
             x: self.w,
@@ -152,1916 +196,1717 @@ impl Vec4Swizzles for U64Vec4 {
     }
 
     #[inline]
-    #[must_use]
     fn xxx(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn xxy(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn xxz(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn xxw(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn xyx(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn xyy(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn xyz(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
+    fn with_xyz(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.x, rhs.y, rhs.z, self.w)
+    }
+
+    #[inline]
     fn xyw(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
+    fn with_xyw(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.x, rhs.y, self.z, rhs.z)
+    }
+
+    #[inline]
     fn xzx(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn xzy(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
+    fn with_xzy(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.x, rhs.z, rhs.y, self.w)
+    }
+
+    #[inline]
     fn xzz(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn xzw(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
+    fn with_xzw(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.x, self.y, rhs.y, rhs.z)
+    }
+
+    #[inline]
     fn xwx(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn xwy(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
+    fn with_xwy(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.x, rhs.z, self.z, rhs.y)
+    }
+
+    #[inline]
     fn xwz(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
+    fn with_xwz(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.x, self.y, rhs.z, rhs.y)
+    }
+
+    #[inline]
     fn xww(self) -> U64Vec3 {
         U64Vec3::new(self.x, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn yxx(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn yxy(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn yxz(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
+    fn with_yxz(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.y, rhs.x, rhs.z, self.w)
+    }
+
+    #[inline]
     fn yxw(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
+    fn with_yxw(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.y, rhs.x, self.z, rhs.z)
+    }
+
+    #[inline]
     fn yyx(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn yyy(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn yyz(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn yyw(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn yzx(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
+    fn with_yzx(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.z, rhs.x, rhs.y, self.w)
+    }
+
+    #[inline]
     fn yzy(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn yzz(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn yzw(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
+    fn with_yzw(self, rhs: U64Vec3) -> Self {
+        Self::new(self.x, rhs.x, rhs.y, rhs.z)
+    }
+
+    #[inline]
     fn ywx(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
+    fn with_ywx(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.z, rhs.x, self.z, rhs.y)
+    }
+
+    #[inline]
     fn ywy(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn ywz(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
+    fn with_ywz(self, rhs: U64Vec3) -> Self {
+        Self::new(self.x, rhs.x, rhs.z, rhs.y)
+    }
+
+    #[inline]
     fn yww(self) -> U64Vec3 {
         U64Vec3::new(self.y, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn zxx(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn zxy(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
+    fn with_zxy(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.y, rhs.z, rhs.x, self.w)
+    }
+
+    #[inline]
     fn zxz(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn zxw(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
+    fn with_zxw(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.y, self.y, rhs.x, rhs.z)
+    }
+
+    #[inline]
     fn zyx(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
+    fn with_zyx(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.z, rhs.y, rhs.x, self.w)
+    }
+
+    #[inline]
     fn zyy(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn zyz(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn zyw(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
+    fn with_zyw(self, rhs: U64Vec3) -> Self {
+        Self::new(self.x, rhs.y, rhs.x, rhs.z)
+    }
+
+    #[inline]
     fn zzx(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn zzy(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn zzz(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn zzw(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn zwx(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
+    fn with_zwx(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.z, self.y, rhs.x, rhs.y)
+    }
+
+    #[inline]
     fn zwy(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
+    fn with_zwy(self, rhs: U64Vec3) -> Self {
+        Self::new(self.x, rhs.z, rhs.x, rhs.y)
+    }
+
+    #[inline]
     fn zwz(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn zww(self) -> U64Vec3 {
         U64Vec3::new(self.z, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn wxx(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn wxy(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
+    fn with_wxy(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.y, rhs.z, self.z, rhs.x)
+    }
+
+    #[inline]
     fn wxz(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
+    fn with_wxz(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.y, self.y, rhs.z, rhs.x)
+    }
+
+    #[inline]
     fn wxw(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn wyx(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
+    fn with_wyx(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.z, rhs.y, self.z, rhs.x)
+    }
+
+    #[inline]
     fn wyy(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn wyz(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
+    fn with_wyz(self, rhs: U64Vec3) -> Self {
+        Self::new(self.x, rhs.y, rhs.z, rhs.x)
+    }
+
+    #[inline]
     fn wyw(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn wzx(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
+    fn with_wzx(self, rhs: U64Vec3) -> Self {
+        Self::new(rhs.z, self.y, rhs.y, rhs.x)
+    }
+
+    #[inline]
     fn wzy(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
+    fn with_wzy(self, rhs: U64Vec3) -> Self {
+        Self::new(self.x, rhs.z, rhs.y, rhs.x)
+    }
+
+    #[inline]
     fn wzz(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn wzw(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
     fn wwx(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
     fn wwy(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
     fn wwz(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
     fn www(self) -> U64Vec3 {
         U64Vec3::new(self.w, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xxxx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.x, self.x)
+    fn xxxx(self) -> Self {
+        Self::new(self.x, self.x, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xxxy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.x, self.y)
+    fn xxxy(self) -> Self {
+        Self::new(self.x, self.x, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xxxz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.x, self.z)
+    fn xxxz(self) -> Self {
+        Self::new(self.x, self.x, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xxxw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.x, self.w)
+    fn xxxw(self) -> Self {
+        Self::new(self.x, self.x, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xxyx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.y, self.x)
+    fn xxyx(self) -> Self {
+        Self::new(self.x, self.x, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xxyy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.y, self.y)
+    fn xxyy(self) -> Self {
+        Self::new(self.x, self.x, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xxyz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.y, self.z)
+    fn xxyz(self) -> Self {
+        Self::new(self.x, self.x, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xxyw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.y, self.w)
+    fn xxyw(self) -> Self {
+        Self::new(self.x, self.x, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xxzx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.z, self.x)
+    fn xxzx(self) -> Self {
+        Self::new(self.x, self.x, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xxzy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.z, self.y)
+    fn xxzy(self) -> Self {
+        Self::new(self.x, self.x, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xxzz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.z, self.z)
+    fn xxzz(self) -> Self {
+        Self::new(self.x, self.x, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xxzw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.z, self.w)
+    fn xxzw(self) -> Self {
+        Self::new(self.x, self.x, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xxwx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.w, self.x)
+    fn xxwx(self) -> Self {
+        Self::new(self.x, self.x, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xxwy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.w, self.y)
+    fn xxwy(self) -> Self {
+        Self::new(self.x, self.x, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xxwz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.w, self.z)
+    fn xxwz(self) -> Self {
+        Self::new(self.x, self.x, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xxww(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.x, self.w, self.w)
+    fn xxww(self) -> Self {
+        Self::new(self.x, self.x, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xyxx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.x, self.x)
+    fn xyxx(self) -> Self {
+        Self::new(self.x, self.y, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xyxy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.x, self.y)
+    fn xyxy(self) -> Self {
+        Self::new(self.x, self.y, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xyxz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.x, self.z)
+    fn xyxz(self) -> Self {
+        Self::new(self.x, self.y, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xyxw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.x, self.w)
+    fn xyxw(self) -> Self {
+        Self::new(self.x, self.y, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xyyx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.y, self.x)
+    fn xyyx(self) -> Self {
+        Self::new(self.x, self.y, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xyyy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.y, self.y)
+    fn xyyy(self) -> Self {
+        Self::new(self.x, self.y, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xyyz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.y, self.z)
+    fn xyyz(self) -> Self {
+        Self::new(self.x, self.y, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xyyw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.y, self.w)
+    fn xyyw(self) -> Self {
+        Self::new(self.x, self.y, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xyzx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.z, self.x)
+    fn xyzx(self) -> Self {
+        Self::new(self.x, self.y, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xyzy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.z, self.y)
+    fn xyzy(self) -> Self {
+        Self::new(self.x, self.y, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xyzz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.z, self.z)
+    fn xyzz(self) -> Self {
+        Self::new(self.x, self.y, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xywx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.w, self.x)
+    fn xywx(self) -> Self {
+        Self::new(self.x, self.y, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xywy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.w, self.y)
+    fn xywy(self) -> Self {
+        Self::new(self.x, self.y, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xywz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.w, self.z)
+    fn xywz(self) -> Self {
+        Self::new(self.x, self.y, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xyww(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.y, self.w, self.w)
+    fn xyww(self) -> Self {
+        Self::new(self.x, self.y, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xzxx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.x, self.x)
+    fn xzxx(self) -> Self {
+        Self::new(self.x, self.z, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xzxy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.x, self.y)
+    fn xzxy(self) -> Self {
+        Self::new(self.x, self.z, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xzxz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.x, self.z)
+    fn xzxz(self) -> Self {
+        Self::new(self.x, self.z, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xzxw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.x, self.w)
+    fn xzxw(self) -> Self {
+        Self::new(self.x, self.z, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xzyx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.y, self.x)
+    fn xzyx(self) -> Self {
+        Self::new(self.x, self.z, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xzyy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.y, self.y)
+    fn xzyy(self) -> Self {
+        Self::new(self.x, self.z, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xzyz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.y, self.z)
+    fn xzyz(self) -> Self {
+        Self::new(self.x, self.z, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xzyw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.y, self.w)
+    fn xzyw(self) -> Self {
+        Self::new(self.x, self.z, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xzzx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.z, self.x)
+    fn xzzx(self) -> Self {
+        Self::new(self.x, self.z, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xzzy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.z, self.y)
+    fn xzzy(self) -> Self {
+        Self::new(self.x, self.z, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xzzz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.z, self.z)
+    fn xzzz(self) -> Self {
+        Self::new(self.x, self.z, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xzzw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.z, self.w)
+    fn xzzw(self) -> Self {
+        Self::new(self.x, self.z, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xzwx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.w, self.x)
+    fn xzwx(self) -> Self {
+        Self::new(self.x, self.z, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xzwy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.w, self.y)
+    fn xzwy(self) -> Self {
+        Self::new(self.x, self.z, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xzwz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.w, self.z)
+    fn xzwz(self) -> Self {
+        Self::new(self.x, self.z, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xzww(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.z, self.w, self.w)
+    fn xzww(self) -> Self {
+        Self::new(self.x, self.z, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xwxx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.x, self.x)
+    fn xwxx(self) -> Self {
+        Self::new(self.x, self.w, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xwxy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.x, self.y)
+    fn xwxy(self) -> Self {
+        Self::new(self.x, self.w, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xwxz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.x, self.z)
+    fn xwxz(self) -> Self {
+        Self::new(self.x, self.w, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xwxw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.x, self.w)
+    fn xwxw(self) -> Self {
+        Self::new(self.x, self.w, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xwyx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.y, self.x)
+    fn xwyx(self) -> Self {
+        Self::new(self.x, self.w, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xwyy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.y, self.y)
+    fn xwyy(self) -> Self {
+        Self::new(self.x, self.w, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xwyz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.y, self.z)
+    fn xwyz(self) -> Self {
+        Self::new(self.x, self.w, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xwyw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.y, self.w)
+    fn xwyw(self) -> Self {
+        Self::new(self.x, self.w, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xwzx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.z, self.x)
+    fn xwzx(self) -> Self {
+        Self::new(self.x, self.w, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xwzy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.z, self.y)
+    fn xwzy(self) -> Self {
+        Self::new(self.x, self.w, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xwzz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.z, self.z)
+    fn xwzz(self) -> Self {
+        Self::new(self.x, self.w, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xwzw(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.z, self.w)
+    fn xwzw(self) -> Self {
+        Self::new(self.x, self.w, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn xwwx(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.w, self.x)
+    fn xwwx(self) -> Self {
+        Self::new(self.x, self.w, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn xwwy(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.w, self.y)
+    fn xwwy(self) -> Self {
+        Self::new(self.x, self.w, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn xwwz(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.w, self.z)
+    fn xwwz(self) -> Self {
+        Self::new(self.x, self.w, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn xwww(self) -> U64Vec4 {
-        U64Vec4::new(self.x, self.w, self.w, self.w)
+    fn xwww(self) -> Self {
+        Self::new(self.x, self.w, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yxxx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.x, self.x)
+    fn yxxx(self) -> Self {
+        Self::new(self.y, self.x, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yxxy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.x, self.y)
+    fn yxxy(self) -> Self {
+        Self::new(self.y, self.x, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yxxz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.x, self.z)
+    fn yxxz(self) -> Self {
+        Self::new(self.y, self.x, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yxxw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.x, self.w)
+    fn yxxw(self) -> Self {
+        Self::new(self.y, self.x, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yxyx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.y, self.x)
+    fn yxyx(self) -> Self {
+        Self::new(self.y, self.x, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yxyy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.y, self.y)
+    fn yxyy(self) -> Self {
+        Self::new(self.y, self.x, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yxyz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.y, self.z)
+    fn yxyz(self) -> Self {
+        Self::new(self.y, self.x, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yxyw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.y, self.w)
+    fn yxyw(self) -> Self {
+        Self::new(self.y, self.x, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yxzx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.z, self.x)
+    fn yxzx(self) -> Self {
+        Self::new(self.y, self.x, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yxzy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.z, self.y)
+    fn yxzy(self) -> Self {
+        Self::new(self.y, self.x, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yxzz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.z, self.z)
+    fn yxzz(self) -> Self {
+        Self::new(self.y, self.x, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yxzw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.z, self.w)
+    fn yxzw(self) -> Self {
+        Self::new(self.y, self.x, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yxwx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.w, self.x)
+    fn yxwx(self) -> Self {
+        Self::new(self.y, self.x, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yxwy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.w, self.y)
+    fn yxwy(self) -> Self {
+        Self::new(self.y, self.x, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yxwz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.w, self.z)
+    fn yxwz(self) -> Self {
+        Self::new(self.y, self.x, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yxww(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.x, self.w, self.w)
+    fn yxww(self) -> Self {
+        Self::new(self.y, self.x, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yyxx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.x, self.x)
+    fn yyxx(self) -> Self {
+        Self::new(self.y, self.y, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yyxy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.x, self.y)
+    fn yyxy(self) -> Self {
+        Self::new(self.y, self.y, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yyxz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.x, self.z)
+    fn yyxz(self) -> Self {
+        Self::new(self.y, self.y, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yyxw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.x, self.w)
+    fn yyxw(self) -> Self {
+        Self::new(self.y, self.y, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yyyx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.y, self.x)
+    fn yyyx(self) -> Self {
+        Self::new(self.y, self.y, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yyyy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.y, self.y)
+    fn yyyy(self) -> Self {
+        Self::new(self.y, self.y, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yyyz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.y, self.z)
+    fn yyyz(self) -> Self {
+        Self::new(self.y, self.y, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yyyw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.y, self.w)
+    fn yyyw(self) -> Self {
+        Self::new(self.y, self.y, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yyzx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.z, self.x)
+    fn yyzx(self) -> Self {
+        Self::new(self.y, self.y, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yyzy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.z, self.y)
+    fn yyzy(self) -> Self {
+        Self::new(self.y, self.y, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yyzz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.z, self.z)
+    fn yyzz(self) -> Self {
+        Self::new(self.y, self.y, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yyzw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.z, self.w)
+    fn yyzw(self) -> Self {
+        Self::new(self.y, self.y, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yywx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.w, self.x)
+    fn yywx(self) -> Self {
+        Self::new(self.y, self.y, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yywy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.w, self.y)
+    fn yywy(self) -> Self {
+        Self::new(self.y, self.y, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yywz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.w, self.z)
+    fn yywz(self) -> Self {
+        Self::new(self.y, self.y, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yyww(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.y, self.w, self.w)
+    fn yyww(self) -> Self {
+        Self::new(self.y, self.y, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yzxx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.x, self.x)
+    fn yzxx(self) -> Self {
+        Self::new(self.y, self.z, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yzxy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.x, self.y)
+    fn yzxy(self) -> Self {
+        Self::new(self.y, self.z, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yzxz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.x, self.z)
+    fn yzxz(self) -> Self {
+        Self::new(self.y, self.z, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yzxw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.x, self.w)
+    fn yzxw(self) -> Self {
+        Self::new(self.y, self.z, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yzyx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.y, self.x)
+    fn yzyx(self) -> Self {
+        Self::new(self.y, self.z, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yzyy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.y, self.y)
+    fn yzyy(self) -> Self {
+        Self::new(self.y, self.z, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yzyz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.y, self.z)
+    fn yzyz(self) -> Self {
+        Self::new(self.y, self.z, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yzyw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.y, self.w)
+    fn yzyw(self) -> Self {
+        Self::new(self.y, self.z, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yzzx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.z, self.x)
+    fn yzzx(self) -> Self {
+        Self::new(self.y, self.z, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yzzy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.z, self.y)
+    fn yzzy(self) -> Self {
+        Self::new(self.y, self.z, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yzzz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.z, self.z)
+    fn yzzz(self) -> Self {
+        Self::new(self.y, self.z, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yzzw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.z, self.w)
+    fn yzzw(self) -> Self {
+        Self::new(self.y, self.z, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn yzwx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.w, self.x)
+    fn yzwx(self) -> Self {
+        Self::new(self.y, self.z, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn yzwy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.w, self.y)
+    fn yzwy(self) -> Self {
+        Self::new(self.y, self.z, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn yzwz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.w, self.z)
+    fn yzwz(self) -> Self {
+        Self::new(self.y, self.z, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn yzww(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.z, self.w, self.w)
+    fn yzww(self) -> Self {
+        Self::new(self.y, self.z, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn ywxx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.x, self.x)
+    fn ywxx(self) -> Self {
+        Self::new(self.y, self.w, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn ywxy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.x, self.y)
+    fn ywxy(self) -> Self {
+        Self::new(self.y, self.w, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn ywxz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.x, self.z)
+    fn ywxz(self) -> Self {
+        Self::new(self.y, self.w, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn ywxw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.x, self.w)
+    fn ywxw(self) -> Self {
+        Self::new(self.y, self.w, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn ywyx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.y, self.x)
+    fn ywyx(self) -> Self {
+        Self::new(self.y, self.w, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn ywyy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.y, self.y)
+    fn ywyy(self) -> Self {
+        Self::new(self.y, self.w, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn ywyz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.y, self.z)
+    fn ywyz(self) -> Self {
+        Self::new(self.y, self.w, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn ywyw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.y, self.w)
+    fn ywyw(self) -> Self {
+        Self::new(self.y, self.w, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn ywzx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.z, self.x)
+    fn ywzx(self) -> Self {
+        Self::new(self.y, self.w, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn ywzy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.z, self.y)
+    fn ywzy(self) -> Self {
+        Self::new(self.y, self.w, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn ywzz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.z, self.z)
+    fn ywzz(self) -> Self {
+        Self::new(self.y, self.w, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn ywzw(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.z, self.w)
+    fn ywzw(self) -> Self {
+        Self::new(self.y, self.w, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn ywwx(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.w, self.x)
+    fn ywwx(self) -> Self {
+        Self::new(self.y, self.w, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn ywwy(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.w, self.y)
+    fn ywwy(self) -> Self {
+        Self::new(self.y, self.w, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn ywwz(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.w, self.z)
+    fn ywwz(self) -> Self {
+        Self::new(self.y, self.w, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn ywww(self) -> U64Vec4 {
-        U64Vec4::new(self.y, self.w, self.w, self.w)
+    fn ywww(self) -> Self {
+        Self::new(self.y, self.w, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zxxx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.x, self.x)
+    fn zxxx(self) -> Self {
+        Self::new(self.z, self.x, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zxxy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.x, self.y)
+    fn zxxy(self) -> Self {
+        Self::new(self.z, self.x, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zxxz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.x, self.z)
+    fn zxxz(self) -> Self {
+        Self::new(self.z, self.x, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zxxw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.x, self.w)
+    fn zxxw(self) -> Self {
+        Self::new(self.z, self.x, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zxyx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.y, self.x)
+    fn zxyx(self) -> Self {
+        Self::new(self.z, self.x, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zxyy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.y, self.y)
+    fn zxyy(self) -> Self {
+        Self::new(self.z, self.x, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zxyz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.y, self.z)
+    fn zxyz(self) -> Self {
+        Self::new(self.z, self.x, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zxyw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.y, self.w)
+    fn zxyw(self) -> Self {
+        Self::new(self.z, self.x, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zxzx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.z, self.x)
+    fn zxzx(self) -> Self {
+        Self::new(self.z, self.x, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zxzy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.z, self.y)
+    fn zxzy(self) -> Self {
+        Self::new(self.z, self.x, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zxzz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.z, self.z)
+    fn zxzz(self) -> Self {
+        Self::new(self.z, self.x, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zxzw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.z, self.w)
+    fn zxzw(self) -> Self {
+        Self::new(self.z, self.x, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zxwx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.w, self.x)
+    fn zxwx(self) -> Self {
+        Self::new(self.z, self.x, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zxwy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.w, self.y)
+    fn zxwy(self) -> Self {
+        Self::new(self.z, self.x, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zxwz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.w, self.z)
+    fn zxwz(self) -> Self {
+        Self::new(self.z, self.x, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zxww(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.x, self.w, self.w)
+    fn zxww(self) -> Self {
+        Self::new(self.z, self.x, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zyxx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.x, self.x)
+    fn zyxx(self) -> Self {
+        Self::new(self.z, self.y, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zyxy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.x, self.y)
+    fn zyxy(self) -> Self {
+        Self::new(self.z, self.y, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zyxz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.x, self.z)
+    fn zyxz(self) -> Self {
+        Self::new(self.z, self.y, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zyxw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.x, self.w)
+    fn zyxw(self) -> Self {
+        Self::new(self.z, self.y, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zyyx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.y, self.x)
+    fn zyyx(self) -> Self {
+        Self::new(self.z, self.y, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zyyy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.y, self.y)
+    fn zyyy(self) -> Self {
+        Self::new(self.z, self.y, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zyyz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.y, self.z)
+    fn zyyz(self) -> Self {
+        Self::new(self.z, self.y, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zyyw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.y, self.w)
+    fn zyyw(self) -> Self {
+        Self::new(self.z, self.y, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zyzx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.z, self.x)
+    fn zyzx(self) -> Self {
+        Self::new(self.z, self.y, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zyzy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.z, self.y)
+    fn zyzy(self) -> Self {
+        Self::new(self.z, self.y, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zyzz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.z, self.z)
+    fn zyzz(self) -> Self {
+        Self::new(self.z, self.y, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zyzw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.z, self.w)
+    fn zyzw(self) -> Self {
+        Self::new(self.z, self.y, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zywx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.w, self.x)
+    fn zywx(self) -> Self {
+        Self::new(self.z, self.y, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zywy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.w, self.y)
+    fn zywy(self) -> Self {
+        Self::new(self.z, self.y, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zywz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.w, self.z)
+    fn zywz(self) -> Self {
+        Self::new(self.z, self.y, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zyww(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.y, self.w, self.w)
+    fn zyww(self) -> Self {
+        Self::new(self.z, self.y, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zzxx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.x, self.x)
+    fn zzxx(self) -> Self {
+        Self::new(self.z, self.z, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zzxy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.x, self.y)
+    fn zzxy(self) -> Self {
+        Self::new(self.z, self.z, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zzxz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.x, self.z)
+    fn zzxz(self) -> Self {
+        Self::new(self.z, self.z, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zzxw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.x, self.w)
+    fn zzxw(self) -> Self {
+        Self::new(self.z, self.z, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zzyx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.y, self.x)
+    fn zzyx(self) -> Self {
+        Self::new(self.z, self.z, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zzyy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.y, self.y)
+    fn zzyy(self) -> Self {
+        Self::new(self.z, self.z, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zzyz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.y, self.z)
+    fn zzyz(self) -> Self {
+        Self::new(self.z, self.z, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zzyw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.y, self.w)
+    fn zzyw(self) -> Self {
+        Self::new(self.z, self.z, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zzzx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.z, self.x)
+    fn zzzx(self) -> Self {
+        Self::new(self.z, self.z, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zzzy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.z, self.y)
+    fn zzzy(self) -> Self {
+        Self::new(self.z, self.z, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zzzz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.z, self.z)
+    fn zzzz(self) -> Self {
+        Self::new(self.z, self.z, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zzzw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.z, self.w)
+    fn zzzw(self) -> Self {
+        Self::new(self.z, self.z, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zzwx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.w, self.x)
+    fn zzwx(self) -> Self {
+        Self::new(self.z, self.z, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zzwy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.w, self.y)
+    fn zzwy(self) -> Self {
+        Self::new(self.z, self.z, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zzwz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.w, self.z)
+    fn zzwz(self) -> Self {
+        Self::new(self.z, self.z, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zzww(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.z, self.w, self.w)
+    fn zzww(self) -> Self {
+        Self::new(self.z, self.z, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zwxx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.x, self.x)
+    fn zwxx(self) -> Self {
+        Self::new(self.z, self.w, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zwxy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.x, self.y)
+    fn zwxy(self) -> Self {
+        Self::new(self.z, self.w, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zwxz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.x, self.z)
+    fn zwxz(self) -> Self {
+        Self::new(self.z, self.w, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zwxw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.x, self.w)
+    fn zwxw(self) -> Self {
+        Self::new(self.z, self.w, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zwyx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.y, self.x)
+    fn zwyx(self) -> Self {
+        Self::new(self.z, self.w, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zwyy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.y, self.y)
+    fn zwyy(self) -> Self {
+        Self::new(self.z, self.w, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zwyz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.y, self.z)
+    fn zwyz(self) -> Self {
+        Self::new(self.z, self.w, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zwyw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.y, self.w)
+    fn zwyw(self) -> Self {
+        Self::new(self.z, self.w, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zwzx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.z, self.x)
+    fn zwzx(self) -> Self {
+        Self::new(self.z, self.w, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zwzy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.z, self.y)
+    fn zwzy(self) -> Self {
+        Self::new(self.z, self.w, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zwzz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.z, self.z)
+    fn zwzz(self) -> Self {
+        Self::new(self.z, self.w, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zwzw(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.z, self.w)
+    fn zwzw(self) -> Self {
+        Self::new(self.z, self.w, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn zwwx(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.w, self.x)
+    fn zwwx(self) -> Self {
+        Self::new(self.z, self.w, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn zwwy(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.w, self.y)
+    fn zwwy(self) -> Self {
+        Self::new(self.z, self.w, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn zwwz(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.w, self.z)
+    fn zwwz(self) -> Self {
+        Self::new(self.z, self.w, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn zwww(self) -> U64Vec4 {
-        U64Vec4::new(self.z, self.w, self.w, self.w)
+    fn zwww(self) -> Self {
+        Self::new(self.z, self.w, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wxxx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.x, self.x)
+    fn wxxx(self) -> Self {
+        Self::new(self.w, self.x, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wxxy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.x, self.y)
+    fn wxxy(self) -> Self {
+        Self::new(self.w, self.x, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wxxz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.x, self.z)
+    fn wxxz(self) -> Self {
+        Self::new(self.w, self.x, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wxxw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.x, self.w)
+    fn wxxw(self) -> Self {
+        Self::new(self.w, self.x, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wxyx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.y, self.x)
+    fn wxyx(self) -> Self {
+        Self::new(self.w, self.x, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wxyy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.y, self.y)
+    fn wxyy(self) -> Self {
+        Self::new(self.w, self.x, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wxyz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.y, self.z)
+    fn wxyz(self) -> Self {
+        Self::new(self.w, self.x, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wxyw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.y, self.w)
+    fn wxyw(self) -> Self {
+        Self::new(self.w, self.x, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wxzx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.z, self.x)
+    fn wxzx(self) -> Self {
+        Self::new(self.w, self.x, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wxzy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.z, self.y)
+    fn wxzy(self) -> Self {
+        Self::new(self.w, self.x, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wxzz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.z, self.z)
+    fn wxzz(self) -> Self {
+        Self::new(self.w, self.x, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wxzw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.z, self.w)
+    fn wxzw(self) -> Self {
+        Self::new(self.w, self.x, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wxwx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.w, self.x)
+    fn wxwx(self) -> Self {
+        Self::new(self.w, self.x, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wxwy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.w, self.y)
+    fn wxwy(self) -> Self {
+        Self::new(self.w, self.x, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wxwz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.w, self.z)
+    fn wxwz(self) -> Self {
+        Self::new(self.w, self.x, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wxww(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.x, self.w, self.w)
+    fn wxww(self) -> Self {
+        Self::new(self.w, self.x, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wyxx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.x, self.x)
+    fn wyxx(self) -> Self {
+        Self::new(self.w, self.y, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wyxy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.x, self.y)
+    fn wyxy(self) -> Self {
+        Self::new(self.w, self.y, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wyxz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.x, self.z)
+    fn wyxz(self) -> Self {
+        Self::new(self.w, self.y, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wyxw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.x, self.w)
+    fn wyxw(self) -> Self {
+        Self::new(self.w, self.y, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wyyx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.y, self.x)
+    fn wyyx(self) -> Self {
+        Self::new(self.w, self.y, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wyyy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.y, self.y)
+    fn wyyy(self) -> Self {
+        Self::new(self.w, self.y, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wyyz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.y, self.z)
+    fn wyyz(self) -> Self {
+        Self::new(self.w, self.y, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wyyw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.y, self.w)
+    fn wyyw(self) -> Self {
+        Self::new(self.w, self.y, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wyzx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.z, self.x)
+    fn wyzx(self) -> Self {
+        Self::new(self.w, self.y, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wyzy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.z, self.y)
+    fn wyzy(self) -> Self {
+        Self::new(self.w, self.y, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wyzz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.z, self.z)
+    fn wyzz(self) -> Self {
+        Self::new(self.w, self.y, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wyzw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.z, self.w)
+    fn wyzw(self) -> Self {
+        Self::new(self.w, self.y, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wywx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.w, self.x)
+    fn wywx(self) -> Self {
+        Self::new(self.w, self.y, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wywy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.w, self.y)
+    fn wywy(self) -> Self {
+        Self::new(self.w, self.y, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wywz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.w, self.z)
+    fn wywz(self) -> Self {
+        Self::new(self.w, self.y, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wyww(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.y, self.w, self.w)
+    fn wyww(self) -> Self {
+        Self::new(self.w, self.y, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wzxx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.x, self.x)
+    fn wzxx(self) -> Self {
+        Self::new(self.w, self.z, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wzxy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.x, self.y)
+    fn wzxy(self) -> Self {
+        Self::new(self.w, self.z, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wzxz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.x, self.z)
+    fn wzxz(self) -> Self {
+        Self::new(self.w, self.z, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wzxw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.x, self.w)
+    fn wzxw(self) -> Self {
+        Self::new(self.w, self.z, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wzyx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.y, self.x)
+    fn wzyx(self) -> Self {
+        Self::new(self.w, self.z, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wzyy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.y, self.y)
+    fn wzyy(self) -> Self {
+        Self::new(self.w, self.z, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wzyz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.y, self.z)
+    fn wzyz(self) -> Self {
+        Self::new(self.w, self.z, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wzyw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.y, self.w)
+    fn wzyw(self) -> Self {
+        Self::new(self.w, self.z, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wzzx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.z, self.x)
+    fn wzzx(self) -> Self {
+        Self::new(self.w, self.z, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wzzy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.z, self.y)
+    fn wzzy(self) -> Self {
+        Self::new(self.w, self.z, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wzzz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.z, self.z)
+    fn wzzz(self) -> Self {
+        Self::new(self.w, self.z, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wzzw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.z, self.w)
+    fn wzzw(self) -> Self {
+        Self::new(self.w, self.z, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wzwx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.w, self.x)
+    fn wzwx(self) -> Self {
+        Self::new(self.w, self.z, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wzwy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.w, self.y)
+    fn wzwy(self) -> Self {
+        Self::new(self.w, self.z, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wzwz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.w, self.z)
+    fn wzwz(self) -> Self {
+        Self::new(self.w, self.z, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wzww(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.z, self.w, self.w)
+    fn wzww(self) -> Self {
+        Self::new(self.w, self.z, self.w, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wwxx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.x, self.x)
+    fn wwxx(self) -> Self {
+        Self::new(self.w, self.w, self.x, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wwxy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.x, self.y)
+    fn wwxy(self) -> Self {
+        Self::new(self.w, self.w, self.x, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wwxz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.x, self.z)
+    fn wwxz(self) -> Self {
+        Self::new(self.w, self.w, self.x, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wwxw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.x, self.w)
+    fn wwxw(self) -> Self {
+        Self::new(self.w, self.w, self.x, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wwyx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.y, self.x)
+    fn wwyx(self) -> Self {
+        Self::new(self.w, self.w, self.y, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wwyy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.y, self.y)
+    fn wwyy(self) -> Self {
+        Self::new(self.w, self.w, self.y, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wwyz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.y, self.z)
+    fn wwyz(self) -> Self {
+        Self::new(self.w, self.w, self.y, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wwyw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.y, self.w)
+    fn wwyw(self) -> Self {
+        Self::new(self.w, self.w, self.y, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wwzx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.z, self.x)
+    fn wwzx(self) -> Self {
+        Self::new(self.w, self.w, self.z, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wwzy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.z, self.y)
+    fn wwzy(self) -> Self {
+        Self::new(self.w, self.w, self.z, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wwzz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.z, self.z)
+    fn wwzz(self) -> Self {
+        Self::new(self.w, self.w, self.z, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wwzw(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.z, self.w)
+    fn wwzw(self) -> Self {
+        Self::new(self.w, self.w, self.z, self.w)
     }
 
     #[inline]
-    #[must_use]
-    fn wwwx(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.w, self.x)
+    fn wwwx(self) -> Self {
+        Self::new(self.w, self.w, self.w, self.x)
     }
 
     #[inline]
-    #[must_use]
-    fn wwwy(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.w, self.y)
+    fn wwwy(self) -> Self {
+        Self::new(self.w, self.w, self.w, self.y)
     }
 
     #[inline]
-    #[must_use]
-    fn wwwz(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.w, self.z)
+    fn wwwz(self) -> Self {
+        Self::new(self.w, self.w, self.w, self.z)
     }
 
     #[inline]
-    #[must_use]
-    fn wwww(self) -> U64Vec4 {
-        U64Vec4::new(self.w, self.w, self.w, self.w)
+    fn wwww(self) -> Self {
+        Self::new(self.w, self.w, self.w, self.w)
     }
 }

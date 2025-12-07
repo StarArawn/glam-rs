@@ -1,5 +1,7 @@
+.vscode
+.idea
 **/target
-*.json
+#*.json
 *.swp
 **/*.rs.bk
 Cargo.lock

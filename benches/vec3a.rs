@@ -19,7 +19,7 @@ bench_binop!(
 #[inline]
 fn vec3a_to_rgb_op(v: Vec3A) -> u32 {
     let (red, green, blue) = (v.min(Vec3A::ONE).max(Vec3A::ZERO) * 255.0).into();
-    (red as u32) << 16 | (green as u32) << 8 | (blue as u32)
+    ((red as u32) << 16) | ((green as u32) << 8) | (blue as u32)
 }
 
 #[inline]
@@ -154,6 +154,15 @@ bench_select!(
     from => random_vec3a
 );
 
+bench_trinop!(
+    vec3a_slerp,
+    "vec3a slerp",
+    op => slerp,
+    from1 => random_vec3a,
+    from2 => random_vec3a,
+    from3 => random_f32
+);
+
 criterion_group!(
     benches,
     vec3a_normalize_bench,
@@ -171,6 +180,7 @@ criterion_group!(
     vec3a_to_rgb,
     vec3a_to_tuple_into,
     vec3a_to_vec3,
+    vec3a_slerp,
 );
 
 criterion_main!(benches);

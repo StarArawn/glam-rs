@@ -3,8 +3,16 @@
 use crate::{DMat2, DMat3, DVec2};
 use core::ops::{Deref, DerefMut, Mul, MulAssign};
 
+#[cfg(feature = "zerocopy")]
+use zerocopy_derive::*;
+
 /// A 2D affine transform, which can represent translation, rotation, scaling and shear.
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+#[cfg_attr(
+    feature = "zerocopy",
+    derive(FromBytes, Immutable, IntoBytes, KnownLayout)
+)]
 #[repr(C)]
 pub struct DAffine2 {
     pub matrix2: DMat2,
@@ -302,6 +310,13 @@ impl DAffine2 {
             translation,
         }
     }
+
+    /// Casts all elements of `self` to `f32`.
+    #[inline]
+    #[must_use]
+    pub fn as_affine2(&self) -> crate::Affine2 {
+        crate::Affine2::from_mat2_translation(self.matrix2.as_mat2(), self.translation.as_vec2())
+    }
 }
 
 impl Default for DAffine2 {
@@ -370,10 +385,10 @@ impl<'a> core::iter::Product<&'a Self> for DAffine2 {
 }
 
 impl Mul for DAffine2 {
-    type Output = DAffine2;
+    type Output = Self;
 
     #[inline]
-    fn mul(self, rhs: DAffine2) -> Self::Output {
+    fn mul(self, rhs: Self) -> Self {
         Self {
             matrix2: self.matrix2 * rhs.matrix2,
             translation: self.matrix2 * rhs.translation + self.translation,
@@ -381,16 +396,47 @@ impl Mul for DAffine2 {
     }
 }
 
+impl Mul<&Self> for DAffine2 {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: &Self) -> Self {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&DAffine2> for &DAffine2 {
+    type Output = DAffine2;
+    #[inline]
+    fn mul(self, rhs: &DAffine2) -> DAffine2 {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<DAffine2> for &DAffine2 {
+    type Output = DAffine2;
+    #[inline]
+    fn mul(self, rhs: DAffine2) -> DAffine2 {
+        (*self).mul(rhs)
+    }
+}
+
 impl MulAssign for DAffine2 {
     #[inline]
-    fn mul_assign(&mut self, rhs: DAffine2) {
+    fn mul_assign(&mut self, rhs: Self) {
         *self = self.mul(rhs);
+    }
+}
+
+impl MulAssign<&Self> for DAffine2 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: &Self) {
+        self.mul_assign(*rhs);
     }
 }
 
 impl From<DAffine2> for DMat3 {
     #[inline]
-    fn from(m: DAffine2) -> DMat3 {
+    fn from(m: DAffine2) -> Self {
         Self::from_cols(
             m.matrix2.x_axis.extend(0.0),
             m.matrix2.y_axis.extend(0.0),
@@ -408,11 +454,73 @@ impl Mul<DMat3> for DAffine2 {
     }
 }
 
-impl Mul<DAffine2> for DMat3 {
+impl Mul<&DMat3> for DAffine2 {
     type Output = DMat3;
+    #[inline]
+    fn mul(self, rhs: &DMat3) -> DMat3 {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&DMat3> for &DAffine2 {
+    type Output = DMat3;
+    #[inline]
+    fn mul(self, rhs: &DMat3) -> DMat3 {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<DMat3> for &DAffine2 {
+    type Output = DMat3;
+    #[inline]
+    fn mul(self, rhs: DMat3) -> DMat3 {
+        (*self).mul(rhs)
+    }
+}
+
+impl Mul<DAffine2> for DMat3 {
+    type Output = Self;
 
     #[inline]
-    fn mul(self, rhs: DAffine2) -> Self::Output {
-        self * DMat3::from(rhs)
+    fn mul(self, rhs: DAffine2) -> Self {
+        self * Self::from(rhs)
+    }
+}
+
+impl Mul<&DAffine2> for DMat3 {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: &DAffine2) -> Self {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&DAffine2> for &DMat3 {
+    type Output = DMat3;
+    #[inline]
+    fn mul(self, rhs: &DAffine2) -> DMat3 {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<DAffine2> for &DMat3 {
+    type Output = DMat3;
+    #[inline]
+    fn mul(self, rhs: DAffine2) -> DMat3 {
+        (*self).mul(rhs)
+    }
+}
+
+impl MulAssign<DAffine2> for DMat3 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: DAffine2) {
+        *self = self.mul(rhs);
+    }
+}
+
+impl MulAssign<&DAffine2> for DMat3 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: &DAffine2) {
+        self.mul_assign(*rhs);
     }
 }

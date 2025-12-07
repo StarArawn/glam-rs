@@ -132,13 +132,14 @@ macro_rules! impl_mat3_tests {
             should_glam_assert!({ $mat3::from_quat($quat::from_xyzw(0.0, 0.0, 0.0, 0.0)) });
         });
 
-        glam_test!(test_mat3_mul, {
-            let mat_a = $mat3::from_axis_angle($vec3::Z, deg(90.0));
-            assert_approx_eq!($newvec3(-1.0, 0.0, 0.0), mat_a * $newvec3(0.0, 1.0, 0.0));
-            assert_approx_eq!(
-                $vec3::new(-1.0, 0.0, 0.0),
-                mat_a.mul_vec3($vec3::new(0.0, 1.0, 0.0))
-            );
+        glam_test!(test_mat3_mul_vec3, {
+            let m = $mat3::from_axis_angle($vec3::Z, deg(90.0));
+            assert_approx_eq!($vec3::NEG_X, m * $vec3::Y);
+            assert_approx_eq!($vec3::NEG_X, &m * $vec3::Y);
+            assert_approx_eq!($vec3::NEG_X, m * &$vec3::Y);
+            assert_approx_eq!($vec3::NEG_X, &m * &$vec3::Y);
+
+            assert_approx_eq!($vec3::NEG_X, m.mul_vec3($vec3::Y))
         });
 
         glam_test!(test_mat3_transform2d, {
@@ -238,6 +239,30 @@ macro_rules! impl_mat3_tests {
             should_panic!({ $mat3::from_mat4_minor(m4, 0, 4) });
         });
 
+        glam_test!(test_mat3_look_at, {
+            let eye = $vec3::new(0.0, 0.0, -5.0);
+            let center = $vec3::new(0.0, 0.0, 0.0);
+            let up = $vec3::new(1.0, 0.0, 0.0);
+
+            let point = $vec3::new(1.0, 0.0, 0.0);
+
+            let lh = $mat3::look_at_lh(eye, center, up);
+            let rh = $mat3::look_at_rh(eye, center, up);
+            assert_approx_eq!(lh * point, $vec3::new(0.0, 1.0, 0.0));
+            assert_approx_eq!(rh * point, $vec3::new(0.0, 1.0, 0.0));
+
+            let dir = (center - eye).normalize();
+            let lh = $mat3::look_to_lh(dir, up);
+            let rh = $mat3::look_to_rh(dir, up);
+            assert_approx_eq!(lh * point, $vec3::new(0.0, 1.0, 0.0));
+            assert_approx_eq!(rh * point, $vec3::new(0.0, 1.0, 0.0));
+
+            should_glam_assert!({ $mat3::look_to_lh($vec3::ONE, $vec3::ZERO) });
+            should_glam_assert!({ $mat3::look_to_lh($vec3::ZERO, $vec3::ONE) });
+            should_glam_assert!({ $mat3::look_to_rh($vec3::ONE, $vec3::ZERO) });
+            should_glam_assert!({ $mat3::look_to_rh($vec3::ZERO, $vec3::ONE) });
+        });
+
         glam_test!(test_mat3_transpose, {
             let m = $newmat3(
                 $newvec3(1.0, 2.0, 3.0),
@@ -305,22 +330,63 @@ macro_rules! impl_mat3_tests {
                 [-4.0, -5.0, -6.0],
                 [-7.0, -8.0, -9.0],
             ]);
+
             assert_eq!(m0x2, m0 * 2.0);
+            assert_eq!(m0x2, &m0 * 2.0);
+            assert_eq!(m0x2, m0 * &2.0);
+            assert_eq!(m0x2, &m0 * &2.0);
+
             assert_eq!(m0x2, 2.0 * m0);
+            assert_eq!(m0x2, &2.0 * m0);
+            assert_eq!(m0x2, 2.0 * &m0);
+            assert_eq!(m0x2, &2.0 * &m0);
+
             assert_eq!(m0, m0x2 / 2.0);
+            assert_eq!(m0, &m0x2 / 2.0);
+            assert_eq!(m0, m0x2 / &2.0);
+            assert_eq!(m0, &m0x2 / &2.0);
+
             assert_eq!(m0, 2.0 / m0x2);
+            assert_eq!(m0, &2.0 / m0x2);
+            assert_eq!(m0, 2.0 / &m0x2);
+            assert_eq!(m0, &2.0 / &m0x2);
+
+            assert_eq!(m0x2, m0.add_mat3(&m0));
             assert_eq!(m0x2, m0 + m0);
+            assert_eq!(m0x2, &m0 + m0);
+            assert_eq!(m0x2, m0 + &m0);
+            assert_eq!(m0x2, &m0 + &m0);
+
+            assert_eq!($mat3::ZERO, m0.sub_mat3(&m0));
             assert_eq!($mat3::ZERO, m0 - m0);
+            assert_eq!($mat3::ZERO, &m0 - m0);
+            assert_eq!($mat3::ZERO, m0 - &m0);
+            assert_eq!($mat3::ZERO, &m0 - &m0);
+
             assert_eq!(m0_neg, -m0);
+            assert_eq!(m0_neg, -&m0);
+
+            assert_approx_eq!(m0, m0.mul_mat3(&$mat3::IDENTITY));
             assert_approx_eq!(m0, m0 * $mat3::IDENTITY);
             assert_approx_eq!(m0, $mat3::IDENTITY * m0);
+            assert_approx_eq!(m0, &$mat3::IDENTITY * m0);
+            assert_approx_eq!(m0, $mat3::IDENTITY * &m0);
+            assert_approx_eq!(m0, &$mat3::IDENTITY * &m0);
 
             let mut m1 = m0;
             m1 *= 2.0;
             assert_eq!(m0x2, m1);
 
+            let mut m1 = m0;
+            m1 *= &2.0;
+            assert_eq!(m0x2, m1);
+
             let mut m1 = m0x2;
             m1 /= 2.0;
+            assert_eq!(m0, m1);
+
+            let mut m1 = m0x2;
+            m1 /= &2.0;
             assert_eq!(m0, m1);
 
             let mut m1 = m0;
@@ -328,12 +394,30 @@ macro_rules! impl_mat3_tests {
             assert_eq!(m0x2, m1);
 
             let mut m1 = m0;
+            m1 += &m0;
+            assert_eq!(m0x2, m1);
+
+            let mut m1 = m0;
             m1 -= m0;
+            assert_eq!($mat3::ZERO, m1);
+
+            let mut m1 = m0;
+            m1 -= &m0;
             assert_eq!($mat3::ZERO, m1);
 
             let mut m1 = $mat3::IDENTITY;
             m1 *= m0;
-            assert_approx_eq!(m0, m1);
+            assert_eq!(m0, m1);
+
+            let mut m1 = $mat3::IDENTITY;
+            m1 *= &m0;
+            assert_eq!(m0, m1);
+        });
+
+        glam_test!(test_mat3_abs, {
+            let a = $mat3::from_cols_array_2d(&ARRAY3X3);
+            let b = -a;
+            assert_eq!(a, b.abs());
         });
 
         glam_test!(test_mat3_fmt, {

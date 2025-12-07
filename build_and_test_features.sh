@@ -2,19 +2,23 @@
 
 set -ex
 
+# Supported dependencies
+DEPENDENCIES="arbitrary approx bytemuck encase mint rand rkyv serde speedy zerocopy debug-glam-assert"
+
 # Set of features to build & test.
 FEATURE_SETS=(
   # std
   "std"
-  "std approx bytemuck mint rand serde debug-glam-assert"
-  "std scalar-math approx bytemuck mint rand serde debug-glam-assert"
+  "std $DEPENDENCIES"
+  "std $DEPENDENCIES bytecheck"
+  "std scalar-math $DEPENDENCIES"
   "std cuda"
   "std scalar-math cuda"
   "std libm"
   "std scalar-math libm"
   # no_std
   "libm"
-  "libm scalar-math approx bytemuck mint rand serde debug-glam-assert"
+  "libm scalar-math $DEPENDENCIES"
 )
 
 rustc --version

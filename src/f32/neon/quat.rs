@@ -11,9 +11,14 @@ use core::arch::aarch64::*;
 
 use core::fmt;
 use core::iter::{Product, Sum};
-use core::ops::{Add, Deref, DerefMut, Div, Mul, MulAssign, Neg, Sub};
+use core::ops::{
+    Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 #[cfg(feature = "rune")]
 use rune::Any;
+
+#[cfg(feature = "zerocopy")]
+use zerocopy_derive::*;
 
 #[repr(C)]
 union UnionCast {
@@ -42,6 +47,11 @@ pub const fn quat(x: f32, y: f32, z: f32, w: f32) -> Quat {
 /// This type is 16 byte aligned.
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "rune", derive(Any))]
+#[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+#[cfg_attr(
+    feature = "zerocopy",
+    derive(FromBytes, Immutable, IntoBytes, KnownLayout)
+)]
 #[repr(transparent)]
 pub struct Quat(pub(crate) float32x4_t);
 
@@ -403,6 +413,70 @@ impl Quat {
         }
     }
 
+    /// Creates a quaterion rotation from a facing direction and an up direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if `up` is not normalized when `glam_assert` is enabled.
+    #[inline]
+    #[must_use]
+    pub fn look_to_lh(dir: Vec3, up: Vec3) -> Self {
+        Self::look_to_rh(-dir, up)
+    }
+
+    /// Creates a quaterion rotation from facing direction and an up direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if `dir` and `up` are not normalized when `glam_assert` is enabled.
+    #[inline]
+    #[must_use]
+    pub fn look_to_rh(dir: Vec3, up: Vec3) -> Self {
+        glam_assert!(dir.is_normalized());
+        glam_assert!(up.is_normalized());
+        let f = dir;
+        let s = f.cross(up).normalize();
+        let u = s.cross(f);
+
+        Self::from_rotation_axes(
+            Vec3::new(s.x, u.x, -f.x),
+            Vec3::new(s.y, u.y, -f.y),
+            Vec3::new(s.z, u.z, -f.z),
+        )
+    }
+
+    /// Creates a left-handed view matrix using a camera position, a focal point, and an up
+    /// direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if `up` is not normalized when `glam_assert` is enabled.
+    #[inline]
+    #[must_use]
+    pub fn look_at_lh(eye: Vec3, center: Vec3, up: Vec3) -> Self {
+        Self::look_to_lh(center.sub(eye).normalize(), up)
+    }
+
+    /// Creates a right-handed view matrix using a camera position, an up direction, and a focal
+    /// point.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if `up` is not normalized when `glam_assert` is enabled.
+    #[inline]
+    #[must_use]
+    pub fn look_at_rh(eye: Vec3, center: Vec3, up: Vec3) -> Self {
+        Self::look_to_rh(center.sub(eye).normalize(), up)
+    }
+
     /// Returns the rotation axis (normalized) and angle (in radians) of `self`.
     #[inline]
     #[must_use]
@@ -557,7 +631,6 @@ impl Quat {
     #[must_use]
     pub fn is_near_identity(self) -> bool {
         // Based on https://github.com/nfrechette/rtm `rtm::quat_near_identity`
-        let threshold_angle = 0.002_847_144_6;
         // Because of floating point precision, we cannot represent very small rotations.
         // The closest f32 to 1.0 that is not 1.0 itself yields:
         // 0.99999994.acos() * 2.0  = 0.000690533954 rad
@@ -571,8 +644,12 @@ impl Quat {
         // If the quat.w is close to -1.0, the angle will be near 2*PI which is close to
         // a negative 0 rotation. By forcing quat.w to be positive, we'll end up with
         // the shortest path.
+        //
+        // For f64 we're using a threshhold of
+        // (1.0 - 1e-14).acos() * 2.0
+        const THRESHOLD_ANGLE: f32 = 0.002_847_144_6;
         let positive_w_angle = math::acos_approx(math::abs(self.w)) * 2.0;
-        positive_w_angle < threshold_angle
+        positive_w_angle < THRESHOLD_ANGLE
     }
 
     /// Returns the angle (in radians) for the minimal rotation
@@ -607,7 +684,7 @@ impl Quat {
         glam_assert!(self.is_normalized() && rhs.is_normalized());
         let angle = self.angle_between(rhs);
         if angle <= 1e-4 {
-            return *self;
+            return rhs;
         }
         let s = (max_angle / angle).clamp(-1.0, 1.0);
         self.slerp(rhs, s)
@@ -844,7 +921,7 @@ impl fmt::Display for Quat {
     }
 }
 
-impl Add<Quat> for Quat {
+impl Add for Quat {
     type Output = Self;
     /// Adds two quaternions.
     ///
@@ -858,7 +935,45 @@ impl Add<Quat> for Quat {
     }
 }
 
-impl Sub<Quat> for Quat {
+impl Add<&Self> for Quat {
+    type Output = Self;
+    #[inline]
+    fn add(self, rhs: &Self) -> Self {
+        self.add(*rhs)
+    }
+}
+
+impl Add<&Quat> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn add(self, rhs: &Quat) -> Quat {
+        (*self).add(*rhs)
+    }
+}
+
+impl Add<Quat> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn add(self, rhs: Quat) -> Quat {
+        (*self).add(rhs)
+    }
+}
+
+impl AddAssign for Quat {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        *self = self.add(rhs);
+    }
+}
+
+impl AddAssign<&Self> for Quat {
+    #[inline]
+    fn add_assign(&mut self, rhs: &Self) {
+        self.add_assign(*rhs);
+    }
+}
+
+impl Sub for Quat {
     type Output = Self;
     /// Subtracts the `rhs` quaternion from `self`.
     ///
@@ -866,6 +981,44 @@ impl Sub<Quat> for Quat {
     #[inline]
     fn sub(self, rhs: Self) -> Self {
         Self::from_vec4(Vec4::from(self) - Vec4::from(rhs))
+    }
+}
+
+impl Sub<&Self> for Quat {
+    type Output = Self;
+    #[inline]
+    fn sub(self, rhs: &Self) -> Self {
+        self.sub(*rhs)
+    }
+}
+
+impl Sub<&Quat> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn sub(self, rhs: &Quat) -> Quat {
+        (*self).sub(*rhs)
+    }
+}
+
+impl Sub<Quat> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn sub(self, rhs: Quat) -> Quat {
+        (*self).sub(rhs)
+    }
+}
+
+impl SubAssign for Quat {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = self.sub(rhs);
+    }
+}
+
+impl SubAssign<&Self> for Quat {
+    #[inline]
+    fn sub_assign(&mut self, rhs: &Self) {
+        self.sub_assign(*rhs);
     }
 }
 
@@ -880,6 +1033,44 @@ impl Mul<f32> for Quat {
     }
 }
 
+impl Mul<&f32> for Quat {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: &f32) -> Self {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&f32> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn mul(self, rhs: &f32) -> Quat {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<f32> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn mul(self, rhs: f32) -> Quat {
+        (*self).mul(rhs)
+    }
+}
+
+impl MulAssign<f32> for Quat {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        *self = self.mul(rhs);
+    }
+}
+
+impl MulAssign<&f32> for Quat {
+    #[inline]
+    fn mul_assign(&mut self, rhs: &f32) {
+        self.mul_assign(*rhs);
+    }
+}
+
 impl Div<f32> for Quat {
     type Output = Self;
     /// Divides a quaternion by a scalar value.
@@ -890,7 +1081,45 @@ impl Div<f32> for Quat {
     }
 }
 
-impl Mul<Quat> for Quat {
+impl Div<&f32> for Quat {
+    type Output = Self;
+    #[inline]
+    fn div(self, rhs: &f32) -> Self {
+        self.div(*rhs)
+    }
+}
+
+impl Div<&f32> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn div(self, rhs: &f32) -> Quat {
+        (*self).div(*rhs)
+    }
+}
+
+impl Div<f32> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn div(self, rhs: f32) -> Quat {
+        (*self).div(rhs)
+    }
+}
+
+impl DivAssign<f32> for Quat {
+    #[inline]
+    fn div_assign(&mut self, rhs: f32) {
+        *self = self.div(rhs);
+    }
+}
+
+impl DivAssign<&f32> for Quat {
+    #[inline]
+    fn div_assign(&mut self, rhs: &f32) {
+        self.div_assign(*rhs);
+    }
+}
+
+impl Mul for Quat {
     type Output = Self;
     /// Multiplies two quaternions. If they each represent a rotation, the result will
     /// represent the combined rotation.
@@ -907,19 +1136,41 @@ impl Mul<Quat> for Quat {
     }
 }
 
-impl MulAssign<Quat> for Quat {
-    /// Multiplies two quaternions. If they each represent a rotation, the result will
-    /// represent the combined rotation.
-    ///
-    /// Note that due to floating point rounding the result may not be perfectly
-    /// normalized.
-    ///
-    /// # Panics
-    ///
-    /// Will panic if `self` or `rhs` are not normalized when `glam_assert` is enabled.
+impl Mul<&Self> for Quat {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: &Self) -> Self {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&Quat> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn mul(self, rhs: &Quat) -> Quat {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<Quat> for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn mul(self, rhs: Quat) -> Quat {
+        (*self).mul(rhs)
+    }
+}
+
+impl MulAssign for Quat {
     #[inline]
     fn mul_assign(&mut self, rhs: Self) {
-        *self = self.mul_quat(rhs);
+        *self = self.mul(rhs);
+    }
+}
+
+impl MulAssign<&Self> for Quat {
+    #[inline]
+    fn mul_assign(&mut self, rhs: &Self) {
+        self.mul_assign(*rhs);
     }
 }
 
@@ -936,11 +1187,75 @@ impl Mul<Vec3> for Quat {
     }
 }
 
+impl Mul<&Vec3> for Quat {
+    type Output = Vec3;
+    #[inline]
+    fn mul(self, rhs: &Vec3) -> Vec3 {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&Vec3> for &Quat {
+    type Output = Vec3;
+    #[inline]
+    fn mul(self, rhs: &Vec3) -> Vec3 {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<Vec3> for &Quat {
+    type Output = Vec3;
+    #[inline]
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        (*self).mul(rhs)
+    }
+}
+
+impl Mul<Vec3A> for Quat {
+    type Output = Vec3A;
+    #[inline]
+    fn mul(self, rhs: Vec3A) -> Self::Output {
+        self.mul_vec3a(rhs)
+    }
+}
+
+impl Mul<&Vec3A> for Quat {
+    type Output = Vec3A;
+    #[inline]
+    fn mul(self, rhs: &Vec3A) -> Vec3A {
+        self.mul(*rhs)
+    }
+}
+
+impl Mul<&Vec3A> for &Quat {
+    type Output = Vec3A;
+    #[inline]
+    fn mul(self, rhs: &Vec3A) -> Vec3A {
+        (*self).mul(*rhs)
+    }
+}
+
+impl Mul<Vec3A> for &Quat {
+    type Output = Vec3A;
+    #[inline]
+    fn mul(self, rhs: Vec3A) -> Vec3A {
+        (*self).mul(rhs)
+    }
+}
+
 impl Neg for Quat {
     type Output = Self;
     #[inline]
     fn neg(self) -> Self {
         self * -1.0
+    }
+}
+
+impl Neg for &Quat {
+    type Output = Quat;
+    #[inline]
+    fn neg(self) -> Quat {
+        (*self).neg()
     }
 }
 
@@ -958,7 +1273,6 @@ impl PartialEq for Quat {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl AsRef<[f32; 4]> for Quat {
     #[inline]
     fn as_ref(&self) -> &[f32; 4] {
@@ -999,14 +1313,6 @@ impl<'a> Product<&'a Self> for Quat {
         I: Iterator<Item = &'a Self>,
     {
         iter.fold(Self::IDENTITY, |a, &b| Self::mul(a, b))
-    }
-}
-
-impl Mul<Vec3A> for Quat {
-    type Output = Vec3A;
-    #[inline]
-    fn mul(self, rhs: Vec3A) -> Self::Output {
-        self.mul_vec3a(rhs)
     }
 }
 
@@ -1054,7 +1360,8 @@ impl DerefMut for Quat {
 }
 
 #[cfg(feature = "rune")]
-pub mod rune {
+pub mod rune_impl {
+    use crate::Quat;
     pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
         module.ty::<Quat>()?;
         module.function_meta(Quat::from_xyzw__meta)?;
@@ -1073,8 +1380,15 @@ pub mod rune {
         module.function_meta(Quat::lerp__meta)?;
         module.function_meta(Quat::slerp__meta)?;
         module.function_meta(rune_mul)?;
+        module.function_meta(clone_quat)?;
+        module.implement_trait::<Quat>(rune::item!(::std::clone::Clone))?;
 
         Ok(())
+    }
+
+    #[rune::function(instance, protocol = CLONE)]
+    fn clone_quat(this: &Quat) -> rune::runtime::VmResult<Quat> {
+        rune::runtime::VmResult::Ok(*this)
     }
 
     #[rune::function(instance, protocol = MUL)]

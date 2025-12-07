@@ -5,6 +5,166 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog], and this project adheres to
 [Semantic Versioning].
 
+## [0.30.9] - 2025-10-28
+
+### Added
+
+* Added 3D vector `rotate_x`, `rotate_y`, `rotate_z` and `rotate_axis` methods.
+
+* Added `arbitrary` feature, providing `arbitrary` trait implementations for
+  `glam` types.
+
+* Added `zerocopy` feature, providing `zerocopy` trait implementations for
+  `glam` types.
+
+### Changed
+
+* Made the threshold used in `DQuat::is_near_identity()` more precise,
+  previously it used the same threshold as `Quat::is_near_identity`.
+
+## [0.30.8] - 2025-09-25
+
+### Changed
+
+* Updates from the rust-gpu project, primarily removing the requirement to use
+  `repr(simd)` on `spirv`.
+
+## [0.30.7] - 2025-09-20
+
+### Changed
+
+* Reverted change to use `self` in vectors and `&self` in vectors and matrices
+  as this was a breaking change for some code.
+
+## [0.30.6] - 2025-09-18
+
+### Added
+
+* Added `encase` feature, providing `encase` trait implementations for `glam`
+  types.
+
+### Changed
+
+* Consistently use `self` for vector and quat methods and `&self` for matrix and
+  affine methods.
+
+## [0.30.5] - 2025-07-26
+
+### Added
+
+* Added `Vec3::to_vec3a` and `Vec3A::to_vec3` methods.
+
+### Fixed
+
+* Fixed using `bytemuck` feature on `spirv` targets.
+
+## [0.30.4] - 2025-06-12
+
+### Added
+
+* Added 4x4 matrix `frustum_lh`, `frustum_rh` and `frustum_rh_gl` methods.
+
+* Added assign methods for all corresponding op trait impls (e.g. `add_assign`,
+  `div_assign`, `mul_assign`, `sub_assign` etc.)
+
+* Added by reference implementations for all op trait impls.
+
+### Changed
+
+* `bytemuck` trait implementations now use derive macros to catch potentially
+  misuse.
+
+### Fixed
+
+* Fixed unsoundness in core-simd implementation of `Vec3A` to `[f32;3]` array
+  and `Vec3A` to `Vec3` conversion.
+
+* Fixed potential unsoundness in conversion from `Vec4` to
+  `(f32, f32, f32, f32)` tuple conversion.
+
+## [0.30.3] - 2025-05-01
+
+### Added
+
+* Added `speedy` feature, implementing serialization and deserialization via the
+  `speedy` crate.
+
+* Added `fract_gl` to the 'FloatExt' trait which uses the GLSL specification of
+  `fract`, `self - self.floor()`.
+
+## [0.30.2] - 2025-04-13
+
+### Added
+
+* Added precision conversion functions for affine types:
+  `Affine3A::as_daffine3`, `DAffine3::as_affine3a`, `Affine2::as_daffine2` and
+  `DAffine3::as_affine2`
+
+* Added `normalize_and_length` method to `f32` and `f64` vectors.
+
+### Changed
+
+* Vector min and max scalar implementations have been changed to use an `if`
+  check instead of the built in Rust floating point primitive `min` and `max`
+  methods. The Rust methods have special handling for `NaN` propagation however
+  because this is not consistent between the different SIMD implementations in
+  glam the most efficient implementation is preferred.
+
+## [0.30.1] - 2025-03-20
+
+### Added
+
+* Added `usize` vector types, `USizeVec2`, `USizeVec3` and `USizeVec4`.
+
+* Added `min_position` and `max_position` methods for vector types, which return
+  the index of the min or max element in the vector.
+
+* Added `rotate_towards` method to 3D vector types.
+
+### Changed
+
+* Removed the small angle check from 2D vector `rotate_towards` implementations
+  as it was unnecessary and would not preserve the length of the input.
+
+## [0.30.0] - 2025-02-18
+
+### Breaking changes
+
+* The `up` and `dir` vectors passed to affine and matrix `look_to_lh` and
+  `look_to_rh` methods must now be normalized. This was changed to be consistent
+  with other methods.
+
+* Updated the optional `rand` dependency to `0.9`
+
+* Updated the optional `rkyv` dependency to `0.8`
+
+### Added
+
+* Implemented `rand` `Uniform` distribution trait for  all vector types.
+
+* Added "swizzle assignment" support to vector swizzles, in the form of
+  `v.with_zx(ivec2(1, 2))` which will return a copy of `v` where the `z`
+  and `x` components are set to 1 and 2 respectively.
+
+* Added `Mat3` and `Quat` `look_at_lh` and `look_at_rh` methods.
+
+* Added `Quat` `look_to_lh` and `look_to_rh` methods.
+
+* Added 3D vector `slerp` method that performs a spherical linear interpolation
+  between a source and a target 3D vector.
+
+* Added `manhattan_distance`, `checked_manhattan_distance` and
+  `chebyshev_distance` methods to integer vector types which calculates the
+  Manhattan Distance and the Chebyshev Distance between two vectors.
+
+* Added 4x4 matrix `from_mat3_translation` method to have parity with the 3D
+  affine type.
+
+### Fixed
+
+* `Quat::rotate_towards()` now returns the target `Quat` if the angle is small.
+  Previously `self` was returned which could skip the rotation entirely.
+
 ## [0.29.2] - 2024-11-05
 
 ### Fixed
@@ -32,7 +192,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 * Optimized vector `from_slice` and `write_to_slice` methods.
 
-* Improved serde error messages.
+* Improved `serde` error messages.
 
 ## [0.29.0] - 2024-08-20
 
@@ -108,7 +268,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ### Added
 
-* Added vector `fract_gl` which uses the GLSL specification of fract,
+* Added vector `fract_gl` which uses the GLSL specification of `fract`,
  `self - self.floor()`.
 
 ## [0.26.0] - 2024-03-18
@@ -1150,6 +1310,18 @@ The format is based on [Keep a Changelog], and this project adheres to
 [Keep a Changelog]: https://keepachangelog.com/
 [Semantic Versioning]: https://semver.org/spec/v2.0.0.html
 [Unreleased]: https://github.com/bitshifter/glam-rs/compare/0.29.2...HEAD
+[0.29.2]: https://github.com/bitshifter/glam-rs/compare/0.29.1...0.29.2
+[Unreleased]: https://github.com/bitshifter/glam-rs/compare/0.30.9...HEAD
+[0.30.9]: https://github.com/bitshifter/glam-rs/compare/0.30.8...0.30.9
+[0.30.8]: https://github.com/bitshifter/glam-rs/compare/0.30.7...0.30.8
+[0.30.7]: https://github.com/bitshifter/glam-rs/compare/0.30.6...0.30.7
+[0.30.6]: https://github.com/bitshifter/glam-rs/compare/0.30.5...0.30.6
+[0.30.5]: https://github.com/bitshifter/glam-rs/compare/0.30.4...0.30.5
+[0.30.4]: https://github.com/bitshifter/glam-rs/compare/0.30.3...0.30.4
+[0.30.3]: https://github.com/bitshifter/glam-rs/compare/0.30.2...0.30.3
+[0.30.2]: https://github.com/bitshifter/glam-rs/compare/0.30.1...0.30.2
+[0.30.1]: https://github.com/bitshifter/glam-rs/compare/0.30.0...0.30.1
+[0.30.0]: https://github.com/bitshifter/glam-rs/compare/0.29.2...0.30.0
 [0.29.2]: https://github.com/bitshifter/glam-rs/compare/0.29.1...0.29.2
 [0.29.1]: https://github.com/bitshifter/glam-rs/compare/0.29.0...0.29.1
 [0.29.0]: https://github.com/bitshifter/glam-rs/compare/0.28.0...0.29.0

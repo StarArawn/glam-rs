@@ -32,6 +32,8 @@
   * vectors: [`I64Vec2`], [`I64Vec3`] and [`I64Vec4`]
 * [`u64`](mod@u64) types
   * vectors: [`U64Vec2`], [`U64Vec3`] and [`U64Vec4`]
+* [`usize`](mod@usize) types
+  * vectors: [`USizeVec2`], [`USizeVec3`] and [`USizeVec4`]
 * [`bool`](mod@bool) types
   * vectors: [`BVec2`], [`BVec3`] and [`BVec4`]
 
@@ -220,15 +222,16 @@ let a = Vec4::new(1.0, 2.0, 3.0, 4.0);
 assert_eq!(format!("{}", a), "[1, 2, 3, 4]");
 ```
 
-## Feature gates
+## Optional features
 
 All `glam` dependencies are optional, however some are required for tests
 and benchmarks.
 
-* `std` - the default feature, has no dependencies.
 * `approx` - traits and macros for approximate float comparisons
+* `arbitrary` - implementations of `Arbitrary` trait for all `glam` types.
 * `bytemuck` - for casting into slices of bytes
-* `libm` - uses `libm` math functions instead of `std`, required to compile with `no_std`
+* `encase` - `encase` trait implementations for `glam` types.
+* `libm` - uses `libm` math functions instead of `std`
 * `mint` - for interoperating with other 3D math libraries
 * `rand` - implementations of `Distribution` trait for all `glam` types.
 * `rkyv` - implementations of `Archive`, `Serialize` and `Deserialize` for all
@@ -238,26 +241,32 @@ and benchmarks.
 * `bytecheck` - to perform archive validation when using the `rkyv` feature
 * `serde` - implementations of `Serialize` and `Deserialize` for all `glam`
   types. Note that serialization should work between builds of `glam` with and without SIMD enabled
+* `speedy` - implementations of `speedy`'s `Readable` and `Writable` for all `glam` types.
+* `zerocopy` - implementations of zerocopy traits for safe transmutes.
+
+## Feature gates
+
+* `std` - the default feature, has no dependencies.
+* `nostd-libm` - uses `libm` math functions if `std` is not available
 * `scalar-math` - disables SIMD support and uses native alignment for all types.
 * `debug-glam-assert` - adds assertions in debug builds which check the validity of parameters
   passed to `glam` to help catch runtime errors.
 * `glam-assert` - adds assertions to all builds which check the validity of parameters passed to
   `glam` to help catch runtime errors.
 * `cuda` - forces `glam` types to match expected cuda alignment
-* `fast-math` - By default, glam attempts to provide bit-for-bit identical
-  results on all platforms. Using this feature will enable platform specific
-  optimizations that may not be identical to other platforms. **Intermediate
-  libraries should not use this feature and defer the decision to the final
-  binary build**.
-* `core-simd` - enables SIMD support via the portable simd module. This is an
-  unstable feature which requires a nightly Rust toolchain and `std` support.
+* `fast-math` - By default, glam attempts to provide bit-for-bit identical results on all platforms.
+  Using this feature will enable platform specific optimizations that may not be identical to other
+  platforms. **Intermediate libraries should not use this feature and defer the decision to the
+  final binary build**.
+* `core-simd` - enables SIMD support via the portable simd module. This is an unstable feature which
+  requires a nightly Rust toolchain and `std` support.
 
 ## Minimum Supported Rust Version (MSRV)
 
 The minimum supported Rust version is `1.68.2`.
 
 */
-#![doc(html_root_url = "https://docs.rs/glam/0.29.2")]
+#![doc(html_root_url = "https://docs.rs/glam/0.30.9")]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(target_arch = "spirv", feature(repr_simd))]
 #![deny(
@@ -272,6 +281,15 @@ The minimum supported Rust version is `1.68.2`.
     all(feature = "core-simd", not(feature = "scalar-math")),
     feature(portable_simd)
 )]
+
+#[cfg(all(
+    not(feature = "std"),
+    not(feature = "libm"),
+    not(feature = "nostd-libm")
+))]
+compile_error!(
+    "You must specify a math backend. Consider enabling either `std`, `libm`, or `nostd-libm`."
+);
 
 #[macro_use]
 mod macros;
@@ -355,6 +373,10 @@ pub use self::i64::*;
 pub mod u64;
 pub use self::u64::*;
 
+/** `usize` vector types. */
+pub mod usize;
+pub use self::usize::*;
+
 /** Traits adding swizzle methods to all vector types. */
 pub mod swizzles;
 pub use self::swizzles::{Vec2Swizzles, Vec3Swizzles, Vec4Swizzles};
@@ -376,42 +398,6 @@ pub fn rune_module() -> Result<::rune::Module, ::rune::ContextError> {
     module.ty::<EulerRot>()?;
 
     Ok(module)
-}
-
-pub fn rhai_module(engine: &mut rhai::Engine) {
-    // Register the type
-    engine.register_type::<Vec2>();
-
-    // Constructors
-    engine.register_fn("Vec2", Vec2::new);
-    engine.register_fn("splat", Vec2::splat);
-
-    // Methods
-    engine.register_fn("extend", Vec2::extend);
-    engine.register_fn("dot", Vec2::dot);
-    engine.register_fn("min", Vec2::min);
-    engine.register_fn("max", Vec2::max);
-    engine.register_fn("clamp", Vec2::clamp);
-    engine.register_fn("abs", Vec2::abs);
-    engine.register_fn("length", Vec2::length);
-    engine.register_fn("length_squared", Vec2::length_squared);
-    engine.register_fn("distance", Vec2::distance);
-    engine.register_fn("floor", Vec2::floor);
-    engine.register_fn("ceil", Vec2::ceil);
-    engine.register_fn("fract", Vec2::fract);
-    engine.register_fn("lerp", Vec2::lerp);
-
-    // Constant
-
-    let mut vec2_mod = rhai::Module::new();
-    vec2_mod.set_var("ZERO", Vec2::ZERO);
-    engine.register_static_module("Vec2", vec2_mod.into());
-
-    // Clone (if Clone is implemented)
-    engine.register_fn("clone", |v: &mut Vec2| v.clone());
-
-    // Debug
-    engine.register_fn("to_string", |v: &mut Vec2| format!("{:?}", v));
 }
 
 #[cfg(feature = "rune")]

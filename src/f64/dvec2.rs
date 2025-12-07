@@ -8,12 +8,12 @@ use rune::Any;
 #[cfg(feature = "rune")]
 use rune::ToConstValue;
 
-#[cfg(feature = "rune")]
-use rune::ToValue;
-
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::{f32, ops::*};
+
+#[cfg(feature = "zerocopy")]
+use zerocopy_derive::*;
 
 /// Creates a 2-dimensional vector.
 #[inline(always)]
@@ -25,9 +25,14 @@ pub const fn dvec2(x: f64, y: f64) -> DVec2 {
 /// A 2-dimensional vector.
 #[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "rune", derive(ToConstValue, Any))]
+#[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+#[cfg_attr(
+    feature = "zerocopy",
+    derive(FromBytes, Immutable, IntoBytes, KnownLayout)
+)]
 #[cfg_attr(feature = "cuda", repr(align(16)))]
-#[cfg_attr(not(target_arch = "spirv"), repr(C))]
-#[cfg_attr(target_arch = "spirv", repr(simd))]
+#[repr(C)]
+#[cfg_attr(target_arch = "spirv", rust_gpu::vector::v1)]
 pub struct DVec2 {
     #[cfg_attr(feature = "rune", rune(get, set, copy, meta))]
     #[cfg_attr(feature = "rune", const_value(with = crate::f64_const_value))]
@@ -76,6 +81,17 @@ impl DVec2 {
 
     /// The unit axes.
     pub const AXES: [Self; 2] = [Self::X, Self::Y];
+
+    /// DVec2 uses Rust Portable SIMD
+    pub const USES_CORE_SIMD: bool = false;
+    /// DVec2 uses Arm NEON
+    pub const USES_NEON: bool = false;
+    /// DVec2 uses scalar math
+    pub const USES_SCALAR_MATH: bool = true;
+    /// DVec2 uses Intel SSE2
+    pub const USES_SSE2: bool = false;
+    /// DVec2 uses WebAssembly 128-bit SIMD
+    pub const USES_WASM32_SIMD: bool = false;
 
     /// Creates a new vector.
     #[inline(always)]
@@ -126,7 +142,7 @@ impl DVec2 {
         Self::new(a[0], a[1])
     }
 
-    /// `[x, y]`
+    /// Converts `self` to `[x, y]`
     #[inline]
     #[must_use]
     pub const fn to_array(&self) -> [f64; 2] {
@@ -196,33 +212,42 @@ impl DVec2 {
 
     /// Returns a vector containing the minimum values for each element of `self` and `rhs`.
     ///
-    /// In other words this computes `[self.x.min(rhs.x), self.y.min(rhs.y), ..]`.
+    /// In other words this computes `[min(x, rhs.x), min(self.y, rhs.y), ..]`.
+    ///
+    /// NaN propogation does not follow IEEE 754-2008 semantics for minNum and may differ on
+    /// different SIMD architectures.
     #[inline]
     #[must_use]
     #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn min(self, rhs: Self) -> Self {
         Self {
-            x: self.x.min(rhs.x),
-            y: self.y.min(rhs.y),
+            x: if self.x < rhs.x { self.x } else { rhs.x },
+            y: if self.y < rhs.y { self.y } else { rhs.y },
         }
     }
 
     /// Returns a vector containing the maximum values for each element of `self` and `rhs`.
     ///
-    /// In other words this computes `[self.x.max(rhs.x), self.y.max(rhs.y), ..]`.
+    /// In other words this computes `[max(self.x, rhs.x), max(self.y, rhs.y), ..]`.
+    ///
+    /// NaN propogation does not follow IEEE 754-2008 semantics for maxNum and may differ on
+    /// different SIMD architectures.
     #[inline]
     #[must_use]
     #[cfg_attr(feature = "rune", rune::function(keep))]
     pub fn max(self, rhs: Self) -> Self {
         Self {
-            x: self.x.max(rhs.x),
-            y: self.y.max(rhs.y),
+            x: if self.x > rhs.x { self.x } else { rhs.x },
+            y: if self.y > rhs.y { self.y } else { rhs.y },
         }
     }
 
     /// Component-wise clamping of values, similar to [`f64::clamp`].
     ///
     /// Each element in `min` must be less-or-equal to the corresponding element in `max`.
+    ///
+    /// NaN propogation does not follow IEEE 754-2008 semantics and may differ on
+    /// different SIMD architectures.
     ///
     /// # Panics
     ///
@@ -238,19 +263,51 @@ impl DVec2 {
     /// Returns the horizontal minimum of `self`.
     ///
     /// In other words this computes `min(x, y, ..)`.
+    ///
+    /// NaN propogation does not follow IEEE 754-2008 semantics and may differ on
+    /// different SIMD architectures.
     #[inline]
     #[must_use]
     pub fn min_element(self) -> f64 {
-        self.x.min(self.y)
+        let min = |a, b| if a < b { a } else { b };
+        min(self.x, self.y)
     }
 
     /// Returns the horizontal maximum of `self`.
     ///
     /// In other words this computes `max(x, y, ..)`.
+    ///
+    /// NaN propogation does not follow IEEE 754-2008 semantics and may differ on
+    /// different SIMD architectures.
     #[inline]
     #[must_use]
     pub fn max_element(self) -> f64 {
-        self.x.max(self.y)
+        let max = |a, b| if a > b { a } else { b };
+        max(self.x, self.y)
+    }
+
+    /// Returns the index of the first minimum element of `self`.
+    #[doc(alias = "argmin")]
+    #[inline]
+    #[must_use]
+    pub fn min_position(self) -> usize {
+        if self.x <= self.y {
+            0
+        } else {
+            1
+        }
+    }
+
+    /// Returns the index of the first maximum element of `self`.
+    #[doc(alias = "argmax")]
+    #[inline]
+    #[must_use]
+    pub fn max_position(self) -> usize {
+        if self.x >= self.y {
+            0
+        } else {
+            1
+        }
     }
 
     /// Returns the sum of all elements of `self`.
@@ -377,10 +434,13 @@ impl DVec2 {
     ///
     /// A negative element results in a `1` bit and a positive element in a `0` bit.  Element `x` goes
     /// into the first lowest bit, element `y` into the second, etc.
+    ///
+    /// An element is negative if it has a negative sign, including -0.0, NaNs with negative sign
+    /// bit and negative infinity.
     #[inline]
     #[must_use]
     pub fn is_negative_bitmask(self) -> u32 {
-        (self.x.is_sign_negative() as u32) | (self.y.is_sign_negative() as u32) << 1
+        (self.x.is_sign_negative() as u32) | ((self.y.is_sign_negative() as u32) << 1)
     }
 
     /// Returns `true` if, and only if, all elements are finite.  If any element is either
@@ -394,6 +454,8 @@ impl DVec2 {
     /// Performs `is_finite` on each element of self, returning a vector mask of the results.
     ///
     /// In other words, this computes `[x.is_finite(), y.is_finite(), ...]`.
+    #[inline]
+    #[must_use]
     pub fn is_finite_mask(self) -> BVec2 {
         BVec2::new(self.x.is_finite(), self.y.is_finite())
     }
@@ -488,7 +550,7 @@ impl DVec2 {
     ///
     /// See also [`Self::try_normalize()`] and [`Self::normalize_or_zero()`].
     ///
-    /// Panics
+    /// # Panics
     ///
     /// Will panic if the resulting normalized vector is not finite when `glam_assert` is enabled.
     #[inline]
@@ -546,6 +608,21 @@ impl DVec2 {
     #[must_use]
     pub fn normalize_or_zero(self) -> Self {
         self.normalize_or(Self::ZERO)
+    }
+
+    /// Returns `self` normalized to length 1.0 and the length of `self`.
+    ///
+    /// If `self` is zero length then `(Self::X, 0.0)` is returned.
+    #[inline]
+    #[must_use]
+    pub fn normalize_and_length(self) -> (Self, f64) {
+        let length = self.length();
+        let rcp = 1.0 / length;
+        if rcp.is_finite() && rcp > 0.0 {
+            (self * rcp, length)
+        } else {
+            (Self::X, 0.0)
+        }
     }
 
     /// Returns whether `self` is length `1.0` or not.
@@ -944,6 +1021,10 @@ impl DVec2 {
     /// Returns `rhs` rotated by the angle of `self`. If `self` is normalized,
     /// then this just rotation. This is what you usually want. Otherwise,
     /// it will be like a rotation with a multiplication by `self`'s length.
+    ///
+    /// This can be used in conjunction with the [`from_angle()`][Self::from_angle()] method, e.g.
+    /// `DVec2::from_angle(PI).rotate(DVec2::Y)` will create the vector `[-1, 0]`
+    /// and rotate [`DVec2::Y`] around it returning `-DVec2::Y`.
     #[inline]
     #[must_use]
     pub fn rotate(self, rhs: Self) -> Self {
@@ -956,16 +1037,13 @@ impl DVec2 {
     /// Rotates towards `rhs` up to `max_angle` (in radians).
     ///
     /// When `max_angle` is `0.0`, the result will be equal to `self`. When `max_angle` is equal to
-    /// `self.angle_between(rhs)`, the result will be equal to `rhs`. If `max_angle` is negative,
+    /// `self.angle_between(rhs)`, the result will be parallel to `rhs`. If `max_angle` is negative,
     /// rotates towards the exact opposite of `rhs`. Will not go past the target.
     #[inline]
     #[must_use]
     pub fn rotate_towards(&self, rhs: Self, max_angle: f64) -> Self {
         let a = self.angle_to(rhs);
         let abs_a = math::abs(a);
-        if abs_a <= 1e-4 {
-            return rhs;
-        }
         // When `max_angle < 0`, rotate no further than `PI` radians away
         let angle = max_angle.clamp(abs_a - core::f64::consts::PI, abs_a) * math::signum(a);
         Self::from_angle(angle).rotate(*self)
@@ -1033,6 +1111,13 @@ impl DVec2 {
     pub fn as_u64vec2(&self) -> crate::U64Vec2 {
         crate::U64Vec2::new(self.x as u64, self.y as u64)
     }
+
+    /// Casts all elements of `self` to `usize`.
+    #[inline]
+    #[must_use]
+    pub fn as_usizevec2(&self) -> crate::USizeVec2 {
+        crate::USizeVec2::new(self.x as usize, self.y as usize)
+    }
 }
 
 impl Default for DVec2 {
@@ -1042,7 +1127,7 @@ impl Default for DVec2 {
     }
 }
 
-impl Div<DVec2> for DVec2 {
+impl Div for DVec2 {
     type Output = Self;
     #[inline]
     fn div(self, rhs: Self) -> Self {
@@ -1053,10 +1138,10 @@ impl Div<DVec2> for DVec2 {
     }
 }
 
-impl Div<&DVec2> for DVec2 {
-    type Output = DVec2;
+impl Div<&Self> for DVec2 {
+    type Output = Self;
     #[inline]
-    fn div(self, rhs: &DVec2) -> DVec2 {
+    fn div(self, rhs: &Self) -> Self {
         self.div(*rhs)
     }
 }
@@ -1077,7 +1162,7 @@ impl Div<DVec2> for &DVec2 {
     }
 }
 
-impl DivAssign<DVec2> for DVec2 {
+impl DivAssign for DVec2 {
     #[inline]
     fn div_assign(&mut self, rhs: Self) {
         self.x.div_assign(rhs.x);
@@ -1088,7 +1173,7 @@ impl DivAssign<DVec2> for DVec2 {
 impl DivAssign<&Self> for DVec2 {
     #[inline]
     fn div_assign(&mut self, rhs: &Self) {
-        self.div_assign(*rhs)
+        self.div_assign(*rhs);
     }
 }
 
@@ -1104,9 +1189,9 @@ impl Div<f64> for DVec2 {
 }
 
 impl Div<&f64> for DVec2 {
-    type Output = DVec2;
+    type Output = Self;
     #[inline]
-    fn div(self, rhs: &f64) -> DVec2 {
+    fn div(self, rhs: &f64) -> Self {
         self.div(*rhs)
     }
 }
@@ -1138,7 +1223,7 @@ impl DivAssign<f64> for DVec2 {
 impl DivAssign<&f64> for DVec2 {
     #[inline]
     fn div_assign(&mut self, rhs: &f64) {
-        self.div_assign(*rhs)
+        self.div_assign(*rhs);
     }
 }
 
@@ -1177,7 +1262,7 @@ impl Div<DVec2> for &f64 {
     }
 }
 
-impl Mul<DVec2> for DVec2 {
+impl Mul for DVec2 {
     type Output = Self;
     #[inline]
     fn mul(self, rhs: Self) -> Self {
@@ -1188,10 +1273,10 @@ impl Mul<DVec2> for DVec2 {
     }
 }
 
-impl Mul<&DVec2> for DVec2 {
-    type Output = DVec2;
+impl Mul<&Self> for DVec2 {
+    type Output = Self;
     #[inline]
-    fn mul(self, rhs: &DVec2) -> DVec2 {
+    fn mul(self, rhs: &Self) -> Self {
         self.mul(*rhs)
     }
 }
@@ -1212,7 +1297,7 @@ impl Mul<DVec2> for &DVec2 {
     }
 }
 
-impl MulAssign<DVec2> for DVec2 {
+impl MulAssign for DVec2 {
     #[inline]
     fn mul_assign(&mut self, rhs: Self) {
         self.x.mul_assign(rhs.x);
@@ -1223,7 +1308,7 @@ impl MulAssign<DVec2> for DVec2 {
 impl MulAssign<&Self> for DVec2 {
     #[inline]
     fn mul_assign(&mut self, rhs: &Self) {
-        self.mul_assign(*rhs)
+        self.mul_assign(*rhs);
     }
 }
 
@@ -1239,9 +1324,9 @@ impl Mul<f64> for DVec2 {
 }
 
 impl Mul<&f64> for DVec2 {
-    type Output = DVec2;
+    type Output = Self;
     #[inline]
-    fn mul(self, rhs: &f64) -> DVec2 {
+    fn mul(self, rhs: &f64) -> Self {
         self.mul(*rhs)
     }
 }
@@ -1273,7 +1358,7 @@ impl MulAssign<f64> for DVec2 {
 impl MulAssign<&f64> for DVec2 {
     #[inline]
     fn mul_assign(&mut self, rhs: &f64) {
-        self.mul_assign(*rhs)
+        self.mul_assign(*rhs);
     }
 }
 
@@ -1312,7 +1397,7 @@ impl Mul<DVec2> for &f64 {
     }
 }
 
-impl Add<DVec2> for DVec2 {
+impl Add for DVec2 {
     type Output = Self;
     #[inline]
     fn add(self, rhs: Self) -> Self {
@@ -1323,10 +1408,10 @@ impl Add<DVec2> for DVec2 {
     }
 }
 
-impl Add<&DVec2> for DVec2 {
-    type Output = DVec2;
+impl Add<&Self> for DVec2 {
+    type Output = Self;
     #[inline]
-    fn add(self, rhs: &DVec2) -> DVec2 {
+    fn add(self, rhs: &Self) -> Self {
         self.add(*rhs)
     }
 }
@@ -1347,7 +1432,7 @@ impl Add<DVec2> for &DVec2 {
     }
 }
 
-impl AddAssign<DVec2> for DVec2 {
+impl AddAssign for DVec2 {
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
         self.x.add_assign(rhs.x);
@@ -1358,7 +1443,7 @@ impl AddAssign<DVec2> for DVec2 {
 impl AddAssign<&Self> for DVec2 {
     #[inline]
     fn add_assign(&mut self, rhs: &Self) {
-        self.add_assign(*rhs)
+        self.add_assign(*rhs);
     }
 }
 
@@ -1374,9 +1459,9 @@ impl Add<f64> for DVec2 {
 }
 
 impl Add<&f64> for DVec2 {
-    type Output = DVec2;
+    type Output = Self;
     #[inline]
-    fn add(self, rhs: &f64) -> DVec2 {
+    fn add(self, rhs: &f64) -> Self {
         self.add(*rhs)
     }
 }
@@ -1408,7 +1493,7 @@ impl AddAssign<f64> for DVec2 {
 impl AddAssign<&f64> for DVec2 {
     #[inline]
     fn add_assign(&mut self, rhs: &f64) {
-        self.add_assign(*rhs)
+        self.add_assign(*rhs);
     }
 }
 
@@ -1447,7 +1532,7 @@ impl Add<DVec2> for &f64 {
     }
 }
 
-impl Sub<DVec2> for DVec2 {
+impl Sub for DVec2 {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: Self) -> Self {
@@ -1458,10 +1543,10 @@ impl Sub<DVec2> for DVec2 {
     }
 }
 
-impl Sub<&DVec2> for DVec2 {
-    type Output = DVec2;
+impl Sub<&Self> for DVec2 {
+    type Output = Self;
     #[inline]
-    fn sub(self, rhs: &DVec2) -> DVec2 {
+    fn sub(self, rhs: &Self) -> Self {
         self.sub(*rhs)
     }
 }
@@ -1482,9 +1567,9 @@ impl Sub<DVec2> for &DVec2 {
     }
 }
 
-impl SubAssign<DVec2> for DVec2 {
+impl SubAssign for DVec2 {
     #[inline]
-    fn sub_assign(&mut self, rhs: DVec2) {
+    fn sub_assign(&mut self, rhs: Self) {
         self.x.sub_assign(rhs.x);
         self.y.sub_assign(rhs.y);
     }
@@ -1493,7 +1578,7 @@ impl SubAssign<DVec2> for DVec2 {
 impl SubAssign<&Self> for DVec2 {
     #[inline]
     fn sub_assign(&mut self, rhs: &Self) {
-        self.sub_assign(*rhs)
+        self.sub_assign(*rhs);
     }
 }
 
@@ -1509,9 +1594,9 @@ impl Sub<f64> for DVec2 {
 }
 
 impl Sub<&f64> for DVec2 {
-    type Output = DVec2;
+    type Output = Self;
     #[inline]
-    fn sub(self, rhs: &f64) -> DVec2 {
+    fn sub(self, rhs: &f64) -> Self {
         self.sub(*rhs)
     }
 }
@@ -1543,7 +1628,7 @@ impl SubAssign<f64> for DVec2 {
 impl SubAssign<&f64> for DVec2 {
     #[inline]
     fn sub_assign(&mut self, rhs: &f64) {
-        self.sub_assign(*rhs)
+        self.sub_assign(*rhs);
     }
 }
 
@@ -1582,7 +1667,7 @@ impl Sub<DVec2> for &f64 {
     }
 }
 
-impl Rem<DVec2> for DVec2 {
+impl Rem for DVec2 {
     type Output = Self;
     #[inline]
     fn rem(self, rhs: Self) -> Self {
@@ -1593,10 +1678,10 @@ impl Rem<DVec2> for DVec2 {
     }
 }
 
-impl Rem<&DVec2> for DVec2 {
-    type Output = DVec2;
+impl Rem<&Self> for DVec2 {
+    type Output = Self;
     #[inline]
-    fn rem(self, rhs: &DVec2) -> DVec2 {
+    fn rem(self, rhs: &Self) -> Self {
         self.rem(*rhs)
     }
 }
@@ -1617,7 +1702,7 @@ impl Rem<DVec2> for &DVec2 {
     }
 }
 
-impl RemAssign<DVec2> for DVec2 {
+impl RemAssign for DVec2 {
     #[inline]
     fn rem_assign(&mut self, rhs: Self) {
         self.x.rem_assign(rhs.x);
@@ -1628,7 +1713,7 @@ impl RemAssign<DVec2> for DVec2 {
 impl RemAssign<&Self> for DVec2 {
     #[inline]
     fn rem_assign(&mut self, rhs: &Self) {
-        self.rem_assign(*rhs)
+        self.rem_assign(*rhs);
     }
 }
 
@@ -1644,9 +1729,9 @@ impl Rem<f64> for DVec2 {
 }
 
 impl Rem<&f64> for DVec2 {
-    type Output = DVec2;
+    type Output = Self;
     #[inline]
-    fn rem(self, rhs: &f64) -> DVec2 {
+    fn rem(self, rhs: &f64) -> Self {
         self.rem(*rhs)
     }
 }
@@ -1678,7 +1763,7 @@ impl RemAssign<f64> for DVec2 {
 impl RemAssign<&f64> for DVec2 {
     #[inline]
     fn rem_assign(&mut self, rhs: &f64) {
-        self.rem_assign(*rhs)
+        self.rem_assign(*rhs);
     }
 }
 
@@ -1717,19 +1802,17 @@ impl Rem<DVec2> for &f64 {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl AsRef<[f64; 2]> for DVec2 {
     #[inline]
     fn as_ref(&self) -> &[f64; 2] {
-        unsafe { &*(self as *const DVec2 as *const [f64; 2]) }
+        unsafe { &*(self as *const Self as *const [f64; 2]) }
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl AsMut<[f64; 2]> for DVec2 {
     #[inline]
     fn as_mut(&mut self) -> &mut [f64; 2] {
-        unsafe { &mut *(self as *mut DVec2 as *mut [f64; 2]) }
+        unsafe { &mut *(self as *mut Self as *mut [f64; 2]) }
     }
 }
 
@@ -1891,7 +1974,10 @@ impl From<BVec2> for DVec2 {
 }
 
 #[cfg(feature = "rune")]
-pub mod rune {
+pub mod rune_impl {
+
+    use crate::DVec2;
+    use rune::ToValue;
 
     pub fn rune_register_types(module: &mut rune::Module) -> Result<(), rune::ContextError> {
         module.ty::<DVec2>()?;

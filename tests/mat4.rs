@@ -179,9 +179,29 @@ macro_rules! impl_mat4_tests {
                 ]),
                 m4
             );
+
+            let t = $vec3::new(10.0, 11.0, 12.0);
+            let m4 = $mat4::from_mat3_translation(m3, t);
+            assert_eq!($mat4::from_cols_array_2d(&[
+                    [1.0, 2.0, 3.0, 0.0],
+                    [4.0, 5.0, 6.0, 0.0],
+                    [7.0, 8.0, 9.0, 0.0],
+                    [10.0, 11.0, 12.0, 1.0]
+            ]),
+                m4);
         });
 
-        glam_test!(test_mat4_mul, {
+        glam_test!(test_mat4_mul_vec4, {
+            let m = $mat4::from_axis_angle($vec3::Z, deg(90.0));
+            assert_approx_eq!($vec4::NEG_X, m * $vec4::Y);
+            assert_approx_eq!($vec4::NEG_X, &m * $vec4::Y);
+            assert_approx_eq!($vec4::NEG_X, m * &$vec4::Y);
+            assert_approx_eq!($vec4::NEG_X, &m * &$vec4::Y);
+
+            assert_approx_eq!($vec4::NEG_X, m.mul_vec4($vec4::Y))
+        });
+
+        glam_test!(test_mat4_transform3d, {
             let m = $mat4::from_axis_angle($vec3::Z, deg(90.0));
             let result3 = m.transform_vector3($vec3::Y);
             assert_approx_eq!($newvec3(-1.0, 0.0, 0.0), result3);
@@ -446,14 +466,55 @@ macro_rules! impl_mat4_tests {
             assert_approx_eq!(lh.transform_point3(point), $vec3::new(0.0, 1.0, 5.0));
             assert_approx_eq!(rh.transform_point3(point), $vec3::new(0.0, 1.0, -5.0));
 
-            let dir = center - eye;
+            let dir = (center - eye).normalize();
             let lh = $mat4::look_to_lh(eye, dir, up);
             let rh = $mat4::look_to_rh(eye, dir, up);
             assert_approx_eq!(lh.transform_point3(point), $vec3::new(0.0, 1.0, 5.0));
             assert_approx_eq!(rh.transform_point3(point), $vec3::new(0.0, 1.0, -5.0));
 
-            should_glam_assert!({ $mat4::look_at_lh($vec3::ONE, $vec3::ZERO, $vec3::ZERO) });
-            should_glam_assert!({ $mat4::look_at_rh($vec3::ONE, $vec3::ZERO, $vec3::ZERO) });
+            should_glam_assert!({ $mat4::look_to_lh($vec3::ONE, $vec3::ONE, $vec3::ZERO) });
+            should_glam_assert!({ $mat4::look_to_lh($vec3::ONE, $vec3::ZERO, $vec3::ONE) });
+            should_glam_assert!({ $mat4::look_to_rh($vec3::ONE, $vec3::ONE, $vec3::ZERO) });
+            should_glam_assert!({ $mat4::look_to_rh($vec3::ONE, $vec3::ZERO, $vec3::ONE) });
+        });
+
+        glam_test!(test_mat4_frustum_gl_rh, {
+            let fov_y_radians = $t::to_radians(90.0);
+            let aspect_ratio = 2.0;
+            let z_near = 5.0;
+            let z_far = 15.0;
+            let f = (0.5 * fov_y_radians).tan();
+            let height = z_near * f;
+            let width = height * aspect_ratio;
+            let projection = $mat4::frustum_rh_gl(-width, width, -height, height, z_near, z_far);
+            let other_projection = $mat4::perspective_rh_gl(fov_y_radians, aspect_ratio, z_near, z_far);
+            assert_approx_eq!(projection, other_projection);
+        });
+
+        glam_test!(test_mat4_frustum_lh, {
+            let fov_y_radians = $t::to_radians(90.0);
+            let aspect_ratio = 2.0;
+            let z_near = 5.0;
+            let z_far = 15.0;
+            let f = (0.5 * fov_y_radians).tan();
+            let height = z_near * f;
+            let width = height * aspect_ratio;
+            let projection = $mat4::frustum_lh(-width, width, -height, height, z_near, z_far);
+            let other_projection = $mat4::perspective_lh(fov_y_radians, aspect_ratio, z_near, z_far);
+            assert_approx_eq!(projection, other_projection);
+        });
+
+        glam_test!(test_mat4_frustum_rh, {
+            let fov_y_radians = $t::to_radians(90.0);
+            let aspect_ratio = 2.0;
+            let z_near = 5.0;
+            let z_far = 15.0;
+            let f = (0.5 * fov_y_radians).tan();
+            let height = z_near * f;
+            let width = height * aspect_ratio;
+            let projection = $mat4::frustum_rh(-width, width, -height, height, z_near, z_far);
+            let other_projection = $mat4::perspective_rh(fov_y_radians, aspect_ratio, z_near, z_far);
+            assert_approx_eq!(projection, other_projection);
         });
 
         glam_test!(test_mat4_perspective_gl_rh, {
@@ -597,22 +658,63 @@ macro_rules! impl_mat4_tests {
                 [-9.0, -10.0, -11.0, -12.0],
                 [-13.0, -14.0, -15.0, -16.0],
             ]);
+
             assert_eq!(m0x2, m0 * 2.0);
+            assert_eq!(m0x2, &m0 * 2.0);
+            assert_eq!(m0x2, m0 * &2.0);
+            assert_eq!(m0x2, &m0 * &2.0);
+
             assert_eq!(m0x2, 2.0 * m0);
+            assert_eq!(m0x2, &2.0 * m0);
+            assert_eq!(m0x2, 2.0 * &m0);
+            assert_eq!(m0x2, &2.0 * &m0);
+
             assert_eq!(m0, m0x2 / 2.0);
+            assert_eq!(m0, &m0x2 / 2.0);
+            assert_eq!(m0, m0x2 / &2.0);
+            assert_eq!(m0, &m0x2 / &2.0);
+
             assert_eq!(m0, 2.0 / m0x2);
+            assert_eq!(m0, &2.0 / m0x2);
+            assert_eq!(m0, 2.0 / &m0x2);
+            assert_eq!(m0, &2.0 / &m0x2);
+
+            assert_eq!(m0x2, m0.add_mat4(&m0));
             assert_eq!(m0x2, m0 + m0);
+            assert_eq!(m0x2, &m0 + m0);
+            assert_eq!(m0x2, m0 + &m0);
+            assert_eq!(m0x2, &m0 + &m0);
+
+            assert_eq!($mat4::ZERO, m0.sub_mat4(&m0));
             assert_eq!($mat4::ZERO, m0 - m0);
+            assert_eq!($mat4::ZERO, &m0 - m0);
+            assert_eq!($mat4::ZERO, m0 - &m0);
+            assert_eq!($mat4::ZERO, &m0 - &m0);
+
             assert_eq!(m0_neg, -m0);
+            assert_eq!(m0_neg, -&m0);
+
+            assert_approx_eq!(m0, m0.mul_mat4(&$mat4::IDENTITY));
             assert_approx_eq!(m0, m0 * $mat4::IDENTITY);
             assert_approx_eq!(m0, $mat4::IDENTITY * m0);
+            assert_approx_eq!(m0, &$mat4::IDENTITY * m0);
+            assert_approx_eq!(m0, $mat4::IDENTITY * &m0);
+            assert_approx_eq!(m0, &$mat4::IDENTITY * &m0);
 
             let mut m1 = m0;
             m1 *= 2.0;
             assert_eq!(m0x2, m1);
 
+            let mut m1 = m0;
+            m1 *= &2.0;
+            assert_eq!(m0x2, m1);
+
             let mut m1 = m0x2;
             m1 /= 2.0;
+            assert_eq!(m0, m1);
+
+            let mut m1 = m0x2;
+            m1 /= &2.0;
             assert_eq!(m0, m1);
 
             let mut m1 = m0;
@@ -620,12 +722,24 @@ macro_rules! impl_mat4_tests {
             assert_eq!(m0x2, m1);
 
             let mut m1 = m0;
+            m1 += &m0;
+            assert_eq!(m0x2, m1);
+
+            let mut m1 = m0;
             m1 -= m0;
+            assert_eq!($mat4::ZERO, m1);
+
+            let mut m1 = m0;
+            m1 -= &m0;
             assert_eq!($mat4::ZERO, m1);
 
             let mut m1 = $mat4::IDENTITY;
             m1 *= m0;
-            assert_approx_eq!(m0, m1);
+            assert_eq!(m0, m1);
+
+            let mut m1 = $mat4::IDENTITY;
+            m1 *= &m0;
+            assert_eq!(m0, m1);
         });
 
         glam_test!(test_mat4_fmt, {
